@@ -1469,7 +1469,7 @@ function save(){localSave();clearTimeout(pushT);pushT=setTimeout(pushNow,1200);}
 function isDay(s){return typeof s==="string"&&/^\d{4}-\d\d-\d\d$/.test(s);}
 function snapshot(){var m=myStats(),t=dayStr(),d=S.daily[t],h={};Object.keys(S.days).sort().slice(-40).forEach(function(k){h[k]=S.days[k].pc;});
   return{who:S.me,xp:m.xp,streak:m.streak,exam:m.exam,pc:m.pc,day:t.slice(5).replace("-",""),daily:d==null?-1:d,at:t,c:m.c,s:m.s,co:m.co,me:m.me,wx:m.wx,wk:wk(),dw:m.dw,h:JSON.stringify(h)};}
-function put(path,obj,method){return fetch(DB+"/"+path+".json",{method:method||"PUT",body:JSON.stringify(obj)}).then(function(r){if(!r.ok)throw 0;net.ok=true;return r;});}
+function put(path,obj,method){return fetch(DB+"/"+path+".json",{method:method||"PUT",body:JSON.stringify(obj)}).then(function(r){if(!r.ok){net.err="écriture refusée par la base (code "+r.status+")";throw 0;}net.ok=true;net.err="";net.w=true;return r;},function(e){net.err="base injoignable en écriture";throw e;});}
 function pushNow(){
   if(!canNet||!S.me||!net.checked)return;
   var b=JSON.stringify(snapshot());
@@ -1495,8 +1495,8 @@ function pull(){
   if(!canNet||!S.me)return;
   if(!net.checked)checkOwn();
   var o=other(),n=function(v){v=+v;return isFinite(v)?Math.max(0,Math.round(v)):0;},md=function(v){return/^\d{4}$/.test(v)?v:"";};
-  fetch(DB+"/p/"+o+".json").then(function(r){return r.json();}).then(function(d){
-    var was=net.ok;net.ok=true;
+  fetch(DB+"/p/"+o+".json").then(function(r){if(!r.ok){net.err="lecture refusée par la base (code "+r.status+")";throw 0;}return r.json();},function(e){net.err="base injoignable en lecture";throw e;}).then(function(d){
+    var was=net.ok;if(!net.err||net.err.indexOf("lecture")>=0){net.ok=true;net.err="";}
     if(d&&d.who===o&&S.me&&other()===o){
       var r={who:o,xp:n(d.xp),streak:n(d.streak),exam:Math.min(40,n(d.exam)),pc:Math.min(100,n(d.pc)),day:md(String(d.day)),daily:+d.daily<0?null:Math.min(10,n(d.daily)),at:isDay(d.at)?d.at:dayStr(),c:n(d.c),s:n(d.s),co:n(d.co),me:n(d.me),wx:n(d.wx),wk:md(String(d.wk)),dw:n(d.dw)};
       var ch=JSON.stringify(r)!==JSON.stringify(S.rival);
@@ -1530,7 +1530,7 @@ function pickMe(k){
   S.me=k;S.owner=k;if(S.rival&&S.rival.who===k)S.rival=null;
   net.checked=false;net.defis={};lastPush="";lastSave="";localSave();pull();
 }
-function netLine(){return'<p class="small muted"><span class="led '+(net.ok===true?"g":net.ok===false?"a":"")+'" style="width:9px;height:9px;margin-right:6px"></span>'+(net.ok===true?"Scores synchronisés en direct.":net.ok===false?"Pas de connexion : les scores se mettront à jour au retour du réseau.":"Connexion en cours.")+'</p>';}
+function netLine(){return'<p class="small muted"><span class="led '+(net.ok===true&&!net.err?"g":net.ok===false||net.err?"a":"")+'" style="width:9px;height:9px;margin-right:6px"></span>'+(net.ok===true&&!net.err?"Scores synchronisés en direct.":net.ok===false||net.err?"Pas de synchronisation : "+(net.err||"réseau indisponible")+".":"Connexion en cours.")+'</p>';}
 function taunt(){
   var o=P[other()].n,r=S.rival;
   if(!r)return o+" n'a pas encore de score. Dès qu'il joue, il apparaît ici.";
