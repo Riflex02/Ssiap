@@ -205,6 +205,22 @@ td.win::after{content:"";display:inline-block;width:8px;height:8px;border-radius
 .stepline .led:first-child{margin-left:0}
 .pcbig{font-family:var(--display);font-weight:700;font-size:22px;flex:none}
 .pcbig .tag{font-family:var(--body)}
+.chatlist{display:flex;flex-direction:column;gap:6px;min-height:40vh}
+.chatday{align-self:center;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding:8px 0 2px}
+.bub{max-width:82%;padding:8px 12px;border-radius:16px;display:flex;flex-direction:column;gap:2px;overflow-wrap:anywhere;border:1px solid var(--line);background:var(--surface)}
+.bub.his{align-self:flex-start;border-bottom-left-radius:4px}
+.bub.mine{align-self:flex-end;border-bottom-right-radius:4px;background:var(--evac-soft);border-color:transparent}
+.bub.pend{opacity:.6}
+.bub time{font-size:11px;color:var(--muted);align-self:flex-end}
+.chatbar{position:sticky;bottom:0;background:var(--bg);padding:8px 0 max(8px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
+.chatform{display:flex;gap:8px;align-items:center}
+.chatform input{flex:1;min-width:0}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.chip{flex:none;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:14px;white-space:nowrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+#nav button{position:relative}
+#nav .dot{position:absolute;top:4px;right:calc(50% - 20px);min-width:18px;height:18px;border-radius:9px;background:var(--fire);color:#fff;font-size:11px;line-height:18px;text-align:center;padding:0 4px;font-style:normal}
+#app.chatmode{padding-bottom:0}
 </style>
 </head>
 <body>
@@ -1185,7 +1201,7 @@ X=X.concat([
 X.forEach(function(x){if(x.n==="Sources des cours")x.f.unshift("Support de formation SSIAP 2 en quatre parties, fourni par Romain : rôle et missions du chef d'équipe, manipulation du SSI, hygiène et sécurité du travail, chef du PC en situation de crise.");});
 
 var KEY="duel-ssiap2-v2";
-var S={me:null,xp:0,streak:0,last:"",res:{},daily:{},exam:0,duel:{r:0,l:0},rival:null,hist:[],days:{},rh:{},memo:{},best:0,ns:0,rec:{c:0,s:0},read:{},wx:{},dw:0,dl:0,dn:0,seeds:[],cas:{},settled:{},owner:null,tb:{},mday:"",pday:""};
+var S={me:null,xp:0,streak:0,last:"",res:{},daily:{},exam:0,duel:{r:0,l:0},rival:null,hist:[],days:{},rh:{},memo:{},best:0,ns:0,rec:{c:0,s:0},read:{},wx:{},dw:0,dl:0,dn:0,seeds:[],cas:{},settled:{},owner:null,tb:{},mday:"",pday:"",seenChat:0};
 var S0=JSON.stringify(S);
 var app=document.getElementById("app");
 var view={name:"home"},cur=null,timer=null;
@@ -1214,9 +1230,9 @@ function touchStreak(){var t=dayStr();if(S.last===t)return;var y=new Date();y.se
 function render(){
   if(timer){clearInterval(timer);timer=null;}
   window.scrollTo(0,0);
-  if(app.classList){app.classList.remove("in");void app.offsetWidth;app.classList.add("in");}
+  if(app.classList){app.classList.remove("in");void app.offsetWidth;app.classList.add("in");app.classList.toggle("chatmode",view.name==="chat"&&!!S.me);}
   if(!S.me){pick();navBar();return;}
-  ({home:home,themes:themes,fiches:fiches,fiche:fiche,quiz:quiz,end:end,scores:scores,duel:duel,duelEnd:duelEnd,parcours:parcours,memo:memo,coursList:coursList,cours:cours,rapid:rapid,done:done,vf:vf,cas:cas,casList:casList,classement:classement,study:study,train:train,hub:hub,guide:guide}[view.name]||home)();navBar();
+  ({home:home,themes:themes,fiches:fiches,fiche:fiche,quiz:quiz,end:end,scores:scores,duel:duel,duelEnd:duelEnd,parcours:parcours,memo:memo,coursList:coursList,cours:cours,rapid:rapid,done:done,vf:vf,cas:cas,casList:casList,classement:classement,study:study,train:train,hub:hub,guide:guide,chat:chatView}[view.name]||home)();navBar();
 }
 function head(back){return'<div class="top"><div class="brand">SSIAP <b>2</b> · Duel</div>'+(back?'<button class="link" data-go="home">Retour au tableau</button>':'<button class="link" data-act="switch">'+esc(P[S.me].n)+' · changer</button>')+'</div>';}
 function pick(){
@@ -1624,6 +1640,8 @@ function checkOwn(){
 }
 function pull(){
   if(!canNet||!S.me)return;
+  if(!chat.es)startChat();
+  pollChat();
   if(!net.checked)checkOwn();
   var o=other(),n=function(v){v=+v;return isFinite(v)?Math.max(0,Math.round(v)):0;},md=function(v){return/^\d{4}$/.test(v)?v:"";};
   fetch(DB+"/p/"+o+".json").then(function(r){if(!r.ok){net.err="lecture refusée par la base (code "+r.status+")";throw 0;}return r.json();},function(e){net.err="base injoignable en lecture";throw e;}).then(function(d){
@@ -1689,7 +1707,7 @@ function scores(msg){
 function netStart(){
   if(S.me&&!S.owner){S.owner=S.me;localSave();}
   if(!canNet)return;
-  pull();setInterval(pull,30000);
+  pull();setInterval(pull,30000);startChat();
   if(document.addEventListener)document.addEventListener("visibilitychange",function(){if(!document.hidden)pull();});
 }
 
@@ -1738,7 +1756,7 @@ function home(){
   '<div><div class="rankline"><b>'+esc(ri.n)+'</b><span class="num">'+S.xp+' pts'+(ri.next?" · encore "+ri.left+" pour "+esc(ri.next):"")+'</span></div><div class="bar" style="margin-top:6px"><i style="width:'+ri.pc+'%"></i></div></div>'+
   '<div class="zones">'+T.map(function(th,i){return'<div title="'+esc(th.n)+'"><span class="led '+led(mastery(i))+'"></span>Z'+(i+1)+'</div>';}).join("")+'</div>'+
   '<p class="small muted">'+val+' thème'+(val>1?"s":"")+' validé'+(val>1?"s":"")+' sur '+T.length+' · '+mastery().pc+' % du programme acquis · socle SSIAP 1 : '+socleStat().pc+' %</p></section>'+
-  defiBanner()+
+  defiBanner()+(unread()?'<div class="modes">'+msgTile()+'</div>':"")+
   '<div class="modes">'+mode('data-act="daily"',"bolt","","Défi du jour",(done!=null?"Fait : "+done+"/10."+rd+" Rejouable pour l'entraînement.":"10 questions, les mêmes pour vous deux. Points doublés."+rd),"wide star")+'</div>'+
   progPanel()+
   '<section class="panel"><div class="vs">'+playerCard("r")+playerCard("l")+'</div>'+(r?'<div class="split" role="img" aria-label="Répartition des points entre Romain et Logan"><i style="width:'+rs+'%;background:var(--s1)"></i><i style="flex:1;background:var(--s2)"></i></div>':"")+
@@ -1794,7 +1812,7 @@ function head(back){return'<div class="top"><div class="brand">SSIAP <b>2</b> ·
 var classementBase=classement;
 classement=function(){
   classementBase();var inc=incoming().length,o=P[other()].n;
-  app.innerHTML+='<h2 class="sec">Se défier</h2><div class="modes">'+
+  app.innerHTML+='<h2 class="sec">Se défier</h2><div class="modes">'+msgTile()+
   mode('data-act="defi"',"flag","o","Lancer un défi","10 questions, "+esc(o)+" joue les mêmes")+
   mode('data-go="scores"',"cup","a","Mes défis",inc?inc+" à relever":"Reçus et envoyés")+
   mode('data-act="duel"',"users","b","Duel face à face","Un seul téléphone posé entre vous deux","wide")+'</div>';
@@ -1805,7 +1823,7 @@ function navBar(){
   if(!on){el.hidden=true;el.innerHTML="";return;}
   el.hidden=false;
   el.innerHTML=[["home","home","Accueil"],["study","book","Étudier"],["train","bolt","S'entraîner"],["classement","cup","Duel"],["parcours","chart","Parcours"]].map(function(x){
-    return'<button data-go="'+x[0]+'"'+(on===x[0]?' class="on" aria-current="page"':"")+'><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+IC[x[1]]+'"/></svg><span>'+x[2]+'</span></button>';}).join("");
+    return'<button data-go="'+x[0]+'"'+(on===x[0]?' class="on" aria-current="page"':"")+'><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+IC[x[1]]+'"/></svg><span>'+x[2]+'</span>'+(x[0]==="classement"&&unread()?'<i class="dot">'+unread()+'</i>':"")+'</button>';}).join("");
 }
 
 /* ---------- v6 : guide réglementaire ---------- */
@@ -1820,6 +1838,67 @@ function dailyIds(day){
   for(var i=0;i<10;i++)out.push(perm[(k*10+i)%n]);
   return out;
 }
+/* ---------- v9 : messages entre Romain et Logan ---------- */
+var chat={msgs:{},es:null,err:"",n:0};
+var CHATURL=DB+"/m.json?orderBy=%22%24key%22&limitToLast=80";
+function goodMsg(m){return m&&(m.f==="r"||m.f==="l")&&typeof m.t==="string"&&m.t.length>0&&m.t.length<=1000&&typeof m.ts==="number"&&isFinite(m.ts);}
+function chatList(){return Object.keys(chat.msgs).filter(function(k){return goodMsg(chat.msgs[k]);}).map(function(k){var m=chat.msgs[k];return{k:k,f:m.f,t:m.t,ts:m.ts};}).sort(function(a,b){return a.ts-b.ts||(a.k<b.k?-1:1);});}
+function unread(){if(!S.me)return 0;var o=other(),s=S.seenChat||0;return chatList().filter(function(m){return m.f===o&&m.ts>s;}).length;}
+function hm(ts){var d=new Date(ts);return pad(d.getHours())+":"+pad(d.getMinutes());}
+function chatHtml(){
+  var l=chatList(),last="",out="";
+  if(!l.length)return'<p class="muted" style="text-align:center;padding:24px 0">Aucun message pour l\'instant. Lance la conversation.</p>';
+  l.forEach(function(m){var d=dayStr(new Date(m.ts));if(d!==last){last=d;out+='<div class="chatday">'+(d===dayStr()?"Aujourd'hui":fr(d))+'</div>';}
+    out+='<div class="bub '+(m.f===S.me?"mine":"his")+(m.k.indexOf("tmp")===0?" pend":"")+'"><span>'+esc(m.t)+'</span><time>'+hm(m.ts)+'</time></div>';});
+  return out;
+}
+function markSeen(){var l=chatList(),mx=S.seenChat||0;l.forEach(function(m){if(m.ts>mx)mx=m.ts;});if(mx!==S.seenChat){S.seenChat=mx;localSave();}}
+function chatView(){
+  var o=P[other()].n;
+  app.innerHTML='<div class="top"><div class="brand">Messages · '+esc(o)+'</div><button class="link" data-go="classement">Retour</button></div>'+
+  '<div id="chatlist" class="chatlist">'+chatHtml()+'</div>'+
+  '<div class="chatbar"><div class="chips">'+["Défi du jour fait !","Je te lance un défi","Bien joué","Tu révises ou tu dors ?"].map(function(t){return'<button class="chip" data-quick="'+esc(t)+'">'+esc(t)+'</button>';}).join("")+'</div>'+
+  '<form id="chatform" class="chatform"><label class="sr" for="chatin">Ton message</label><input id="chatin" class="code" style="font-family:var(--body);font-size:16px" maxlength="500" autocomplete="off" enterkeyhint="send" placeholder="Écrire à '+esc(o)+'"><button class="btn go" type="submit" style="width:auto;min-height:48px;padding:10px 16px"><span class="t">Envoyer</span></button></form>'+
+  '<p id="chaterr" class="small muted">'+esc(chat.err||"Les messages passent par la base des scores : n'y écris rien de confidentiel.")+'</p></div>';
+  markSeen();chatBottom();
+  if(canNet)timer=setInterval(pollChat,chat.es?8000:4000);
+}
+function chatBottom(){try{window.scrollTo(0,document.body.scrollHeight||1e6);}catch(e){}}
+function onChat(){
+  var n=chatList().length,grew=n>chat.n;chat.n=n;
+  if(view.name==="chat"){var el=document.getElementById("chatlist");if(el){el.innerHTML=chatHtml();markSeen();if(grew)chatBottom();}}
+  else{if(grew&&unread()>0){try{if(navigator.vibrate)navigator.vibrate(60);}catch(e){}}navBar();if(view.name==="home"||view.name==="classement")refresh();}
+}
+function pollChat(){
+  if(!canNet||!S.me)return;
+  fetch(CHATURL).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){
+    var keep={};Object.keys(chat.msgs).forEach(function(k){if(k.indexOf("tmp")===0)keep[k]=chat.msgs[k];});
+    chat.msgs=d&&typeof d==="object"?d:{};Object.keys(keep).forEach(function(k){chat.msgs[k]=keep[k];});onChat();
+  }).catch(function(){});
+}
+function startChat(){
+  if(!canNet||chat.es||typeof EventSource!=="function")return;
+  try{
+    var es=new EventSource(CHATURL);chat.es=es;
+    var apply=function(e){try{var d=JSON.parse(e.data);if(!d)return;
+      if(d.path==="/"){if(e.type==="put"){var keep={};Object.keys(chat.msgs).forEach(function(k){if(k.indexOf("tmp")===0)keep[k]=chat.msgs[k];});chat.msgs=d.data&&typeof d.data==="object"?d.data:{};Object.keys(keep).forEach(function(k){chat.msgs[k]=keep[k];});}
+        else if(d.data)Object.keys(d.data).forEach(function(k){chat.msgs[k]=d.data[k];});}
+      else{var k=d.path.split("/")[1];if(k){if(d.data===null)delete chat.msgs[k];else if(d.path.split("/").length===2)chat.msgs[k]=d.data;}}
+      onChat();}catch(x){}};
+    es.addEventListener("put",apply);es.addEventListener("patch",apply);
+    es.onerror=function(){if(es.readyState===2){chat.es=null;}};
+  }catch(e){chat.es=null;}
+}
+function sendChat(text){
+  var t=String(text||"").replace(/\s+/g," ").trim().slice(0,500);if(!t||!S.me)return;
+  if(!canNet){chat.err="Pas de réseau : message non envoyé.";chatView();return;}
+  var tmp="tmp"+Date.now(),now=Date.now();chat.msgs[tmp]={f:S.me,t:t,ts:now};chat.err="";
+  var inp=document.getElementById("chatin");if(inp)inp.value="";onChat();chatBottom();
+  fetch(DB+"/m.json",{method:"POST",body:JSON.stringify({f:S.me,t:t,ts:now})}).then(function(r){if(!r.ok)throw r.status;return r.json();}).then(function(d){
+    delete chat.msgs[tmp];if(d&&d.name)chat.msgs[d.name]={f:S.me,t:t,ts:now};onChat();
+  }).catch(function(){delete chat.msgs[tmp];chat.err="Message non envoyé. Vérifie ta connexion et réessaie.";var e=document.getElementById("chaterr");if(e)e.textContent=chat.err;if(inp&&!inp.value)inp.value=t;onChat();});
+}
+function msgTile(){var u=unread(),o=P[other()].n;return mode('data-go="chat"',"users",u?"f":"b","Messages",u?u+" nouveau"+(u>1?"x":"")+" message"+(u>1?"s":"")+" de "+esc(o):"Écrire à "+esc(o),"wide");}
 /* ---------- socle SSIAP 1 ---------- */
 function socleIds(){return allIds().filter(function(i){return Q[i][0]<=4||(i>=Q5A&&i<Q5B);});}
 function socleStat(){var a=socleIds(),ok=a.filter(function(i){return S.res[i]===1;}).length;return{n:a.length,ok:ok,pc:Math.round(ok/a.length*100)};}
@@ -1840,6 +1919,7 @@ app.addEventListener("click",function(e){
       var todo=shuffle(pool.filter(function(i){return S.res[i]!==1;})),okd=shuffle(pool.filter(function(i){return S.res[i]===1;}));ids=todo.concat(okd).slice(0,10);ids=shuffle(ids);}
     start(ids,"train",d.train==="all"?"Tout mélanger":d.train==="err"?"Mes erreurs":T[+d.train].n);if(d.train!=="all"&&d.train!=="err")cur.th=+d.train;}
   else if(d.hub!=null){view={name:"hub",t:+d.hub};render();}
+  else if(d.quick!=null)sendChat(d.quick);
   else if(d.piege!=null)start(shuffle(trapIds(+d.piege)).slice(0,10),"piege","Pièges : "+T[+d.piege].n);
   else if(d.act==="piege")start(shuffle(trapIds()).slice(0,10),"piege","Questions pièges");
   else if(d.opt!=null)answer(+d.opt);
@@ -1878,6 +1958,7 @@ app.addEventListener("click",function(e){
     else{S.rival=r;S.rh[r.at]={xp:r.xp,pc:r.pc};save();view={name:"home"};render();}}
 });
 app.addEventListener("mouseover",function(e){var tp=e.target.closest&&e.target.closest("[data-tip]");if(tp){var te=document.getElementById("tip");if(te)te.textContent=tp.dataset.tip;}});
+if(app.addEventListener)app.addEventListener("submit",function(e){e.preventDefault();var i=document.getElementById("chatin");if(i)sendChat(i.value);});
 var navEl=document.getElementById("nav");
 if(navEl&&navEl.addEventListener)navEl.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.go){cur=null;view={name:b.dataset.go};render();}});
 function boot(data){load(data);render();netStart();}
