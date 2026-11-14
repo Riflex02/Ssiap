@@ -936,6 +936,7 @@ C=C.concat([
 ]}
 ]);
 GUIDE.push(["D'après ton support de formation",C.map(function(_,i){return i;}).filter(function(i){return i>=S0C;})]);
+var Q5A=Q.length;
 Q=Q.concat([
 [0,"Une combustion sans flamme, à faible chaleur, est :",["Lente","Vive","Spontanée","Explosive"],"Exemple : le charbon de bois."],
 [0,"La fermentation du fourrage est une combustion :",["Spontanée","Vive","Lente","Complète"],"Auto-échauffement sans apport extérieur."],
@@ -1038,6 +1039,7 @@ Q=Q.concat([
 [5,"L'arrêté du 2 mai 2005 compte :",["17 articles et 11 annexes","5 articles","100 articles","2 annexes"],"Service, examen, centres, application."],
 [5,"L'épreuve pratique du SSIAP 1 est :",["Une ronde","Un oral de 15 minutes","Une gestion de PC en crise","Un parcours sportif"],"Avec des questions du jury.",1]
 ]);
+var Q5B=Q.length;
 M=M.concat([
 ["Les trois combustions","Vive, lente, spontanée"],["Causes d'incendie","Humaines, naturelles, énergétiques"],["Dangers des fumées","Opacité, toxicité, température"],["Temps maximal en local enfumé","30 secondes"],
 ["R, E, I","Capacité portante, étanchéité, isolation"],["Stable au feu en lettres","R"],["Coupe-feu en lettres","EI ou REI"],["M1","Combustible mais non inflammable"],["Indices s et d","Fumées et gouttelettes enflammées"],
@@ -1708,7 +1710,7 @@ function prog(){
   var w=weakest(),it=[{l:"Défi du jour",d:S.daily[t]!=null,a:'data-act="daily"'}];
   if(nx>=0)it.push({l:"Cours : "+cname(nx),d:has(["cours"]),a:'data-cours="'+nx+'"'});else it.push({l:"Série : "+T[w].n,d:has(["train"]),a:'data-train="'+w+'"'});
   it.push({l:"Une série de cartes mémo",d:S.mday===t,a:'data-act="memo"'});
-  it.push({l:"Un entraînement au choix",d:has(["train","piege","vf","chrono","survie","cas","exam"]),a:'data-go="train"'});
+  it.push({l:"Une série du socle SSIAP 1",d:has(["socle"]),a:'data-act="socle"'});
   return it;
 }
 function progPanel(){
@@ -1735,7 +1737,7 @@ function home(){
   '<div class="count">'+cd+'</div>'+
   '<div><div class="rankline"><b>'+esc(ri.n)+'</b><span class="num">'+S.xp+' pts'+(ri.next?" · encore "+ri.left+" pour "+esc(ri.next):"")+'</span></div><div class="bar" style="margin-top:6px"><i style="width:'+ri.pc+'%"></i></div></div>'+
   '<div class="zones">'+T.map(function(th,i){return'<div title="'+esc(th.n)+'"><span class="led '+led(mastery(i))+'"></span>Z'+(i+1)+'</div>';}).join("")+'</div>'+
-  '<p class="small muted">'+val+' thème'+(val>1?"s":"")+' validé'+(val>1?"s":"")+' sur '+T.length+' · '+mastery().pc+' % du programme acquis</p></section>'+
+  '<p class="small muted">'+val+' thème'+(val>1?"s":"")+' validé'+(val>1?"s":"")+' sur '+T.length+' · '+mastery().pc+' % du programme acquis · socle SSIAP 1 : '+socleStat().pc+' %</p></section>'+
   defiBanner()+
   '<div class="modes">'+mode('data-act="daily"',"bolt","","Défi du jour",(done!=null?"Fait : "+done+"/10."+rd+" Rejouable pour l'entraînement.":"10 questions, les mêmes pour vous deux. Points doublés."+rd),"wide star")+'</div>'+
   progPanel()+
@@ -1764,7 +1766,9 @@ function hub(){
 }
 function train(){
   var err=allIds().filter(function(i){return S.res[i]===0;}).length;
+  var so=socleStat();
   app.innerHTML=head()+'<h1>S\'entraîner</h1><div class="modes">'+
+  mode('data-act="socle"',"book","","Socle SSIAP 1","À savoir par cœur : "+so.ok+" questions acquises sur "+so.n+" ("+so.pc+" %)","wide star")+
   mode('data-go="themes"',"layers","","Par thème","10 questions corrigées")+
   mode('data-act="piege"',"trap","f","Questions pièges",trapIds().length+" pièges classiques")+
   (err?mode('data-train="err"',"redo","a","Mes erreurs",err+" question"+(err>1?"s":"")+" à reprendre","wide"):"")+
@@ -1772,7 +1776,7 @@ function train(){
   mode('data-act="chrono"',"timer","a","Contre-la-montre","60 secondes. Record : "+S.rec.c)+
   mode('data-act="survie"',"heart","f","Survie","3 vies. Record : "+S.rec.s)+
   mode('data-go="casList"',"alert","o","Cas pratiques","Tu diriges le PC")+
-  mode('data-act="exam"',"check","","Examen blanc","40 questions en 40 minutes, comme le QCM. Admis à 12/20.","wide")+'</div>'+
+  mode('data-act="exam"',"check","","Examen blanc","40 questions en 40 minutes, dont 28 du socle SSIAP 1. Admis à 12/20.","wide")+'</div>'+
   '<p class="small muted">'+Q.length+' questions en tout, dont '+trapIds().length+' pièges.</p>';
 }
 function coursList(){
@@ -1816,6 +1820,11 @@ function dailyIds(day){
   for(var i=0;i<10;i++)out.push(perm[(k*10+i)%n]);
   return out;
 }
+/* ---------- socle SSIAP 1 ---------- */
+function socleIds(){return allIds().filter(function(i){return Q[i][0]<=4||(i>=Q5A&&i<Q5B);});}
+function socleStat(){var a=socleIds(),ok=a.filter(function(i){return S.res[i]===1;}).length;return{n:a.length,ok:ok,pc:Math.round(ok/a.length*100)};}
+function socleSerie(){var a=socleIds(),todo=shuffle(a.filter(function(i){return S.res[i]!==1;})),done=shuffle(a.filter(function(i){return S.res[i]===1;}));return shuffle(todo.concat(done).slice(0,10));}
+function examIds(){var so=socleIds(),set={};so.forEach(function(i){set[i]=1;});var rest=allIds().filter(function(i){return!set[i];});return shuffle(shuffle(so).slice(0,28).concat(shuffle(rest).slice(0,12)));}
 /* ---------- événements ---------- */
 app.addEventListener("click",function(e){
   var tp=e.target.closest("[data-tip]");if(tp){var te=document.getElementById("tip");if(te)te.textContent=tp.dataset.tip;return;}
@@ -1853,7 +1862,8 @@ app.addEventListener("click",function(e){
   else if(d.memo!=null){S.memo[cur.ids[cur.i]]=+d.memo;if(+d.memo)cur.ok++;save();cur.i++;cur.show=false;if(cur.i>=cur.ids.length){S.mday=dayStr();save();}memo();}
   else if(d.act==="dnext")duelNext();
   else if(d.act==="daily")start(dailyIds(),"daily","Défi du jour");
-  else if(d.act==="exam")start(shuffle(allIds()).slice(0,40),"exam","Examen blanc");
+  else if(d.act==="exam")start(examIds(),"exam","Examen blanc");
+  else if(d.act==="socle")start(socleSerie(),"socle","Socle SSIAP 1");
   else if(d.act==="duel")startDuel();
   else if(d.act==="quit"){cur=null;view={name:"home"};render();}
   else if(d.act==="switch"){S.me=null;save();render();}
