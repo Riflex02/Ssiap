@@ -1,0 +1,17 @@
+{
+  "name": "Duel SSIAP 2",
+  "short_name": "Duel SSIAP 2",
+  "description": "Révisions SSIAP 2 en duel",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#13221B",
+  "theme_color": "#13221B",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

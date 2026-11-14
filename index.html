@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Duel SSIAP 2">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <title>Duel SSIAP 2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1737,6 +1740,7 @@ app.addEventListener("mouseover",function(e){var tp=e.target.closest&&e.target.c
 var navEl=document.getElementById("nav");
 if(navEl&&navEl.addEventListener)navEl.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.go){cur=null;view={name:b.dataset.go};render();}});
 function boot(data){load(data);render();netStart();}
+try{if("serviceWorker" in navigator&&location.protocol==="https:"&&location.hostname.indexOf("github.io")>=0)navigator.serviceWorker.register("sw.js");}catch(e){}
 try{if(window.claude&&window.claude.hot){window.claude.hot.snapshot(function(){return S;});}}catch(e){}
 if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(boot);else boot((window.claude&&window.claude.hot&&window.claude.hot.data)||{});
 </script>
