@@ -556,7 +556,8 @@ X=X.concat([
 ]);
 
 var KEY="duel-ssiap2-v1";
-var S={me:null,xp:0,streak:0,last:"",res:{},daily:{},exam:0,duel:{r:0,l:0},rival:null,hist:[],days:{},rh:{},memo:{},best:0,ns:0,rec:{c:0,s:0},read:{},wx:{},dw:0,dl:0,dn:0,seeds:[],cas:{}};
+var S={me:null,xp:0,streak:0,last:"",res:{},daily:{},exam:0,duel:{r:0,l:0},rival:null,hist:[],days:{},rh:{},memo:{},best:0,ns:0,rec:{c:0,s:0},read:{},wx:{},dw:0,dl:0,dn:0,seeds:[],cas:{},settled:{},owner:null};
+var S0=JSON.stringify(S);
 var app=document.getElementById("app");
 var view={name:"home"},cur=null,timer=null;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -595,7 +596,7 @@ function pick(){
 }
 function playerCard(k){
   var mine=k===S.me,d=mine?{xp:S.xp,streak:S.streak,exam:S.exam,pc:mastery().pc}:S.rival;
-  if(!d)return'<div class="player"><div class="name">'+P[k].n+'</div><p class="small muted">Pas encore de score. Demande-lui son code.</p></div>';
+  if(!d)return'<div class="player"><div class="name">'+P[k].n+'</div><p class="small muted">Pas encore de score.</p></div>';
   return'<div class="player'+(mine?" me":"")+'"><div class="name">'+P[k].n+'</div><div class="xp num">'+d.xp+' pts</div><div class="small muted">'+rank(d.xp)+'</div><div class="small num">Série '+d.streak+' j · Maîtrise '+d.pc+' %</div><div class="small num">Examen blanc '+(d.exam?(d.exam/2).toLocaleString("fr-FR")+'/20':'à faire')+'</div>'+(mine?'':'<div class="small muted">Code du '+esc(d.at.slice(8)+"/"+d.at.slice(5,7))+'</div>')+'</div>';
 }
 function taunt(){
@@ -692,7 +693,7 @@ function chart(){
   s+="</svg>";
   var dates={};mine.forEach(function(p){dates[p.d]=1;});his.forEach(function(p){dates[p.d]=1;});
   var rows=Object.keys(dates).sort().reverse().map(function(d){var m=S.days[d],r=S.rh[d];return"<tr><td>"+fr(d)+"</td><td>"+(m?m.pc+" %":"")+"</td><td>"+(m&&m.a?m.ok+"/"+m.a:"")+"</td><td>"+(r?r.pc+" %":"")+"</td></tr>";}).join("");
-  return'<div class="legend"><span><i style="background:'+P[S.me].c+'"></i>'+esc(me)+'</span><span><i style="background:'+P[other()].c+'"></i>'+esc(ot)+' (à chaque code reçu)</span></div><div class="chart">'+s+'</div><p id="tip" class="muted">Touche un point pour voir le détail.</p><details><summary>Voir le tableau</summary><table><thead><tr><th>Jour</th><th>'+esc(me)+'</th><th>Réponses du jour</th><th>'+esc(ot)+'</th></tr></thead><tbody>'+rows+'</tbody></table></details>';
+  return'<div class="legend"><span><i style="background:'+P[S.me].c+'"></i>'+esc(me)+'</span><span><i style="background:'+P[other()].c+'"></i>'+esc(ot)+'</span></div><div class="chart">'+s+'</div><p id="tip" class="muted">Touche un point pour voir le détail.</p><details><summary>Voir le tableau</summary><table><thead><tr><th>Jour</th><th>'+esc(me)+'</th><th>Réponses du jour</th><th>'+esc(ot)+'</th></tr></thead><tbody>'+rows+'</tbody></table></details>';
 }
 function themeRow(th,i){
   var m=mastery(i),cut=dnum(dayStr())-6,r=[0,0],o=[0,0];
@@ -710,7 +711,7 @@ function parcours(){
   app.innerHTML=head(1)+'<h1>Mon parcours</h1>'+
   '<section class="panel"><div class="tiles"><div class="tile"><b class="num">'+all.pc+' %</b><span>du programme acquis ('+all.ok+' questions sur '+all.n+')</span></div><div class="tile"><b class="num">'+(t.a?Math.round(t.ok/t.a*100)+" %":"0 %")+'</b><span>de bonnes réponses sur '+t.a+' répondues</span></div><div class="tile"><b class="num">'+S.ns+'</b><span>séries terminées</span></div><div class="tile"><b class="num">'+S.best+' j</b><span>meilleure série de jours (en cours : '+S.streak+')</span></div></div></section>'+
   '<section class="panel"><h2>Progression</h2><p class="small muted">Part des questions acquises, jour après jour.</p>'+chart()+
-  '<p class="small">'+(r?esc(o)+" en était à "+r.pc+" % et "+r.xp+" pts dans son code du "+fr(r.at)+". Toi : "+all.pc+" % et "+S.xp+" pts.":"Colle le code de "+esc(o)+" pour voir sa courbe à côté de la tienne.")+'</p><button class="link" data-go="scores">Échanger les scores</button></section>'+
+  '<p class="small">'+(r?esc(o)+" : "+r.pc+" % et "+r.xp+" pts au "+fr(r.at)+". Toi : "+all.pc+" % et "+S.xp+" pts.":"La courbe de "+esc(o)+" apparaîtra à côté de la tienne dès qu'il aura joué.")+'</p></section>'+
   '<section class="panel"><h2>Thème par thème</h2>'+T.map(themeRow).join("")+'</section>'+
   '<section class="panel"><h2>Examens blancs</h2>'+(exams.length?exams.slice().reverse().map(function(h,i,a){var p=a[i+1],d=p?h.ok-p.ok:0;return'<div class="row"><span>'+fr(h.d)+'</span><span class="num"><b>'+(h.ok/2).toLocaleString("fr-FR")+'/20</b> '+(h.ok>=24?"admis":"non admis")+(p?(d>0?' <span class="up">+'+(d/2).toLocaleString("fr-FR")+'</span>':d<0?' <span class="down">'+(d/2).toLocaleString("fr-FR")+'</span>':""):"")+'</span></div>';}).join(""):'<p class="muted">Aucun examen blanc pour l\'instant. Le premier sert de point de départ.</p>')+'</section>'+
   '<section class="panel"><h2>Badges</h2><p class="small muted num">'+got+' sur '+badges.length+' obtenus</p>'+badges.map(function(b){return'<div class="theme"><span class="led '+(b[1]?"g":"")+'"></span><span'+(b[1]?"":' class="muted"')+'>'+esc(b[0])+'</span></div>';}).join("")+'</section>'+
@@ -746,7 +747,7 @@ function finish(){
   else if(cur.mode==="exam"){gain=ok*5+(ok>=24?100:0);if(ok>S.exam)S.exam=ok;}
   else gain=ok*10+(ok===n&&n>=5?30:0);
   if(cur.mode==="cours"){if(S.read[cur.ct]==null)gain+=40;if(S.read[cur.ct]==null||ok>S.read[cur.ct])S.read[cur.ct]=ok;}
-  if(cur.mode==="defi"){if(cur.vs!=null){if(ok>cur.vs){S.dw++;gain+=50;}else if(ok<cur.vs)S.dl++;else S.dn++;}S.seeds.push(cur.seed);if(S.seeds.length>80)S.seeds.shift();}
+  if(cur.mode==="defi"){if(cur.vs!=null){if(ok>cur.vs){S.dw++;gain+=50;}else if(ok<cur.vs)S.dl++;else S.dn++;}S.seeds.push(cur.seed);if(S.seeds.length>80)S.seeds.shift();defiSync(ok);}
   var day=S.days[t]||(S.days[t]={a:0,ok:0,pc:0,t:{}});
   cur.ids.forEach(function(id,i){if(cur.ans[i]==null&&cur.mode!=="exam")return;var good=cur.ans[i]===0,th=Q[id][0],tt=day.t[th]||(day.t[th]=[0,0]);day.a++;tt[0]++;if(good){day.ok++;tt[1]++;}});
   day.pc=mastery().pc;S.ns++;
@@ -764,7 +765,7 @@ function end(){
   else msg="Série difficile, et c'est le moment d'en avoir. Fiche, puis nouvelle tentative.";
   var wrong=cur.ids.map(function(id,i){return{q:Q[id],a:cur.ans[i]};}).filter(function(x){return x.a!==0;});
   app.innerHTML=head(1)+'<section class="panel"><div class="meta"><span>'+esc(cur.title)+'</span><span class="num">+'+cur.gain+' pts</span></div><div class="ring">'+ring(ok,n)+'<div><p>'+esc(msg)+'</p></div></div>'+defiBlock()+prevLine()+'<p class="small muted num">Série en cours : '+S.streak+' jour'+(S.streak>1?"s":"")+' · Total : '+S.xp+' pts</p></section>'+
-  '<div class="rows">'+(cur.mode==="cours"?'<button class="btn go" data-go="coursList"><span class="t">Continuer les cours</span><span class="arrow">→</span></button>':"")+'<button class="btn'+(cur.mode==="cours"?"":" go")+'" data-go="scores"><span><span class="t">Envoyer mon score à '+esc(o)+'</span></span><span class="arrow">→</span></button><button class="btn" data-go="parcours"><span class="t">Voir mon parcours</span><span class="arrow">→</span></button><button class="btn" data-go="home"><span class="t">Retour au tableau</span><span class="arrow">→</span></button></div>'+
+  '<div class="rows">'+(cur.mode==="cours"?'<button class="btn go" data-go="coursList"><span class="t">Continuer les cours</span><span class="arrow">→</span></button>':"")+'<button class="btn'+(cur.mode==="cours"?"":" go")+'" data-go="scores"><span><span class="t">Défis avec '+esc(o)+'</span></span><span class="arrow">→</span></button><button class="btn" data-go="parcours"><span class="t">Voir mon parcours</span><span class="arrow">→</span></button><button class="btn" data-go="home"><span class="t">Retour au tableau</span><span class="arrow">→</span></button></div>'+
   (wrong.length?'<section class="panel"><h2>À revoir</h2>'+wrong.map(function(x){return'<div><p><b>'+esc(x.q[1])+'</b></p><p>'+esc(x.q[2][0])+'</p><p class="small muted">'+esc(x.q[3])+'</p></div>';}).join("")+'</section>':"");
 }
 /* ---------- échange de scores ---------- */
@@ -831,7 +832,7 @@ function pick(){
 function playerCard(k){
   var mine=k===S.me,d=mine?myStats():S.rival,av='<span class="av" style="background:'+P[k].c+'">'+P[k].n[0]+'</span>';
   if(!d)return'<div class="player"><div class="who">'+av+'<span class="name">'+P[k].n+'</span></div><p class="small muted">Pas encore de score. Demande-lui son code.</p></div>';
-  return'<div class="player'+(mine?" me":"")+'"><div class="who">'+av+'<span class="name">'+P[k].n+'</span></div><div class="xp num">'+d.xp+' pts</div><div class="small muted">'+rank(d.xp)+'</div><div class="small num">Série '+d.streak+' j · Acquis '+d.pc+' %</div>'+(mine?"":'<div class="small muted">Code du '+esc(fr(S.rival.at))+'</div>')+'</div>';
+  return'<div class="player'+(mine?" me":"")+'"><div class="who">'+av+'<span class="name">'+P[k].n+'</span></div><div class="xp num">'+d.xp+' pts</div><div class="small muted">'+rank(d.xp)+'</div><div class="small num">Série '+d.streak+' j · Acquis '+d.pc+' %</div>'+(mine?"":'<div class="small muted">Mis à jour le '+esc(fr(S.rival.at))+'</div>')+'</div>';
 }
 function lead(){var a=myStats(),b=hisStats();if(!b)return null;var keys=["xp","wx","pc","exam","c","s","streak","co","me","dw"],w=0,l=0;keys.forEach(function(k){if(b[k]==null)return;if(a[k]>b[k])w++;else if(a[k]<b[k])l++;});return{w:w,l:l};}
 function home(){
@@ -846,7 +847,7 @@ function home(){
   '<div><div class="rankline"><b>'+esc(ri.n)+'</b><span class="num">'+S.xp+' pts'+(ri.next?" · encore "+ri.left+" pour "+esc(ri.next):"")+'</span></div><div class="bar" style="margin-top:6px"><i style="width:'+ri.pc+'%"></i></div></div>'+
   '<div class="zones">'+T.map(function(th,i){return'<div title="'+esc(th.n)+'"><span class="led '+led(mastery(i))+'"></span>Z'+(i+1)+'</div>';}).join("")+'</div></section>'+
   '<section class="panel"><div class="vs">'+playerCard("r")+playerCard("l")+'</div>'+(r?'<div class="split" role="img" aria-label="Répartition des points entre Romain et Logan"><i style="width:'+rs+'%;background:var(--s1)"></i><i style="flex:1;background:var(--s2)"></i></div>':"")+
-  '<p>'+esc(taunt())+(ld?" Au classement : "+ld.w+" catégorie"+(ld.w>1?"s":"")+" pour toi, "+ld.l+" pour "+esc(o)+".":"")+'</p><div class="two"><button class="btn" data-go="classement"><span class="t">Classement</span></button><button class="btn" data-go="scores"><span class="t">Codes et défis</span></button></div></section>'+
+  '<p>'+esc(taunt())+(ld?" Au classement : "+ld.w+" catégorie"+(ld.w>1?"s":"")+" pour toi, "+ld.l+" pour "+esc(o)+".":"")+'</p><div class="two"><button class="btn" data-go="classement"><span class="t">Classement</span></button><button class="btn" data-go="scores"><span class="t">Défis</span></button></div>'+netLine()+'</section>'+defiBanner()+
   '<div class="modes">'+mode('data-act="daily"',"bolt","","Défi du jour",(done!=null?"Fait : "+done+"/10."+rd+" Rejouable pour l'entraînement.":"10 questions, les mêmes pour vous deux. Points doublés."+rd),"wide star")+'</div>'+
   '<h2 class="sec">Étudier</h2><div class="modes">'+
   mode('data-go="coursList"',"book","","Cours",Object.keys(S.read).length+" chapitre"+(Object.keys(S.read).length>1?"s":"")+" sur "+C.length+" terminé"+(Object.keys(S.read).length>1?"s":""))+
@@ -861,7 +862,7 @@ function home(){
   mode('data-go="casList"',"alert","f","Cas pratiques","Tu diriges le PC")+
   mode('data-act="exam"',"check","","Examen blanc","40 questions, 40 minutes")+'</div>'+
   '<h2 class="sec">Se mesurer</h2><div class="modes">'+
-  mode('data-act="defi"',"flag","o","Lancer un défi","10 questions à envoyer à "+esc(o))+
+  mode('data-act="defi"',"flag","o","Lancer un défi","10 questions, "+esc(o)+" joue les mêmes")+
   mode('data-act="duel"',"users","b","Duel face à face","Un téléphone entre vous deux")+'</div>';
 }
 /* ---------- cours ---------- */
@@ -899,7 +900,7 @@ function rapidStop(){
   var ch=cur.m==="chrono",k=ch?"c":"s",rec=cur.ok>S.rec[k],gain=cur.ok*5+(rec&&cur.ok?30:0),old=S.rec[k];if(rec)S.rec[k]=cur.ok;
   bank(cur.m,ch?"Contre-la-montre":"Survie",cur.ok,cur.n,gain,false);
   var h=hisStats(),hv=h?h[k]:null,o=P[other()].n;
-  cur={done:{title:ch?"Contre-la-montre":"Survie",big:cur.ok+"",unit:"bonne"+(cur.ok>1?"s":"")+" réponse"+(cur.ok>1?"s":"")+(ch?" en 60 secondes":" avant la troisième erreur"),gain:gain,lines:[rec?"Nouveau record. L'ancien était de "+old+".":"Ton record reste à "+S.rec[k]+".",hv==null?"Envoie ton code à "+o+" pour comparer vos records.":cur.ok>hv?"Tu passes devant "+o+", qui est à "+hv+".":"Le record de "+o+" est à "+hv+"."],again:cur.m}};
+  cur={done:{title:ch?"Contre-la-montre":"Survie",big:cur.ok+"",unit:"bonne"+(cur.ok>1?"s":"")+" réponse"+(cur.ok>1?"s":"")+(ch?" en 60 secondes":" avant la troisième erreur"),gain:gain,lines:[rec?"Nouveau record. L'ancien était de "+old+".":"Ton record reste à "+S.rec[k]+".",hv==null?o+" n'a pas encore de record.":cur.ok>hv?"Tu passes devant "+o+", qui est à "+hv+".":"Le record de "+o+" est à "+hv+"."],again:cur.m}};
   view={name:"done"};render();
 }
 function done(){
@@ -955,17 +956,119 @@ function classement(){
   var wr=0,wl=0,body=rows.map(function(r){var x=R&&R[r[1]]!=null?R[r[1]]:null,y=L&&L[r[1]]!=null?L[r[1]]:null,cx="",cy="";if(x!=null&&y!=null){if(x>y){cx=' class="win"';wr++;}else if(y>x){cy=' class="win"';wl++;}}
     return"<tr><td>"+r[0]+"</td><td"+cx+">"+f(R,r[1],r[2])+"</td><td"+cy+">"+f(L,r[1],r[2])+"</td></tr>";}).join("");
   app.innerHTML=head(1)+'<h1>Classement</h1>'+
-  '<section class="panel">'+(b?'<div class="ring" style="justify-content:space-between"><div class="who"><span class="av" style="background:var(--s1)">R</span><span class="score num">'+wr+'</span></div><span class="muted">catégories</span><div class="who"><span class="score num">'+wl+'</span><span class="av" style="background:var(--s2)">L</span></div></div><p>'+(wr===wl?"Égalité au nombre de catégories.":(wr>wl?"Romain":"Logan")+" mène "+Math.max(wr,wl)+" à "+Math.min(wr,wl)+".")+'</p>':'<p>Il manque le code de '+esc(P[o].n)+' pour remplir sa colonne.</p>')+
+  '<section class="panel">'+(b?'<div class="ring" style="justify-content:space-between"><div class="who"><span class="av" style="background:var(--s1)">R</span><span class="score num">'+wr+'</span></div><span class="muted">catégories</span><div class="who"><span class="score num">'+wl+'</span><span class="av" style="background:var(--s2)">L</span></div></div><p>'+(wr===wl?"Égalité au nombre de catégories.":(wr>wl?"Romain":"Logan")+" mène "+Math.max(wr,wl)+" à "+Math.min(wr,wl)+".")+'</p>':'<p>'+esc(P[o].n)+' n\'a pas encore de score. Sa colonne se remplira dès qu\'il joue.</p>')+
   '<table><thead><tr><th>Catégorie</th><th>Romain</th><th>Logan</th></tr></thead><tbody>'+body+'</tbody></table>'+
-  '<p class="small muted">'+(b?"Colonne de "+esc(P[o].n)+" : son code du "+fr(S.rival.at)+". ":"")+'Échangez vos codes pour mettre le tableau à jour.</p><button class="btn go" data-go="scores"><span class="t">Échanger les codes</span><span class="arrow">→</span></button></section>'+
+  '<p class="small muted">'+(b?"Colonne de "+esc(P[o].n)+" mise à jour le "+fr(S.rival.at)+". ":"")+'Le tableau se met à jour tout seul.</p>'+netLine()+'</section>'+
   '<section class="panel"><h2>Face à face</h2><div class="row"><span>Défis à distance</span><span class="num"><b>'+S.dw+'</b> gagnés, <b>'+S.dl+'</b> perdus, '+S.dn+' nuls</span></div><div class="row"><span>Manches sur un téléphone</span><span class="num">Romain <b>'+S.duel.r+'</b> · Logan <b>'+S.duel.l+'</b></span></div></section>';
+}
+
+/* ---------- v4 : synchronisation en ligne ---------- */
+var DB="https://duel-ssiap2-7c2ce-default-rtdb.europe-west1.firebasedatabase.app/duel";
+var net={ok:null,checked:false,defis:{}},pushT=null,lastPush="",lastSave="",canNet=typeof window.fetch==="function";
+function localSave(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function save(){localSave();clearTimeout(pushT);pushT=setTimeout(pushNow,1200);}
+function isDay(s){return typeof s==="string"&&/^\d{4}-\d\d-\d\d$/.test(s);}
+function snapshot(){var m=myStats(),t=dayStr(),d=S.daily[t],h={};Object.keys(S.days).sort().slice(-40).forEach(function(k){h[k]=S.days[k].pc;});
+  return{who:S.me,xp:m.xp,streak:m.streak,exam:m.exam,pc:m.pc,day:t.slice(5).replace("-",""),daily:d==null?-1:d,at:t,c:m.c,s:m.s,co:m.co,me:m.me,wx:m.wx,wk:wk(),dw:m.dw,h:JSON.stringify(h)};}
+function put(path,obj,method){return fetch(DB+"/"+path+".json",{method:method||"PUT",body:JSON.stringify(obj)}).then(function(r){if(!r.ok)throw 0;net.ok=true;return r;});}
+function pushNow(){
+  if(!canNet||!S.me||!net.checked)return;
+  var b=JSON.stringify(snapshot());
+  if(b!==lastPush)put("p/"+S.me,JSON.parse(b)).then(function(){lastPush=b;}).catch(function(){net.ok=false;});
+  var full=JSON.stringify(S);
+  if(full!==lastSave&&S.ns>0)put("s/"+S.me,{s:full,t:Date.now()}).then(function(){lastSave=full;}).catch(function(){net.ok=false;});
+}
+function refresh(){
+  var f={home:home,classement:classement,parcours:parcours,scores:scores}[view.name];if(!f||!S.me)return;
+  if(view.name==="scores"){var i=document.getElementById("hiscode");if(i&&i.value)return;}
+  var y=window.scrollY;f();window.scrollTo(0,y);
+}
+function checkOwn(){
+  if(!canNet||!S.me||net.checked)return Promise.resolve();
+  var who=S.me;
+  return fetch(DB+"/s/"+who+".json").then(function(r){return r.json();}).then(function(d){
+    if(S.me!==who)return;net.ok=true;net.checked=true;
+    if(d&&typeof d.s==="string"){try{var o=JSON.parse(d.s);if(o&&o.me===who&&(o.ns||0)>(S.ns||0)){S=Object.assign(JSON.parse(S0),o);S.owner=who;localSave();render();}}catch(e){}}
+    pushNow();
+  }).catch(function(){net.ok=false;});
+}
+function pull(){
+  if(!canNet||!S.me)return;
+  if(!net.checked)checkOwn();
+  var o=other(),n=function(v){v=+v;return isFinite(v)?Math.max(0,Math.round(v)):0;},md=function(v){return/^\d{4}$/.test(v)?v:"";};
+  fetch(DB+"/p/"+o+".json").then(function(r){return r.json();}).then(function(d){
+    var was=net.ok;net.ok=true;
+    if(d&&d.who===o&&S.me&&other()===o){
+      var r={who:o,xp:n(d.xp),streak:n(d.streak),exam:Math.min(40,n(d.exam)),pc:Math.min(100,n(d.pc)),day:md(String(d.day)),daily:+d.daily<0?null:Math.min(10,n(d.daily)),at:isDay(d.at)?d.at:dayStr(),c:n(d.c),s:n(d.s),co:n(d.co),me:n(d.me),wx:n(d.wx),wk:md(String(d.wk)),dw:n(d.dw)};
+      var ch=JSON.stringify(r)!==JSON.stringify(S.rival);
+      if(ch){S.rival=r;try{var h=JSON.parse(d.h||"{}");Object.keys(h).forEach(function(k){if(isDay(k))S.rh[k]={xp:0,pc:Math.min(100,n(h[k]))};});}catch(e){}S.rh[r.at]={xp:r.xp,pc:r.pc};localSave();}
+      if(ch||was!==true)refresh();
+    }else if(was!==true)refresh();
+  }).catch(function(){var was=net.ok;net.ok=false;if(was!==false)refresh();});
+  fetch(DB+"/d.json").then(function(r){return r.json();}).then(function(all){
+    var before=JSON.stringify(net.defis);net.defis=all&&typeof all==="object"?all:{};
+    var ch=settle();if(ch||before!==JSON.stringify(net.defis))refresh();
+  }).catch(function(){});
+}
+function goodSeed(k){return/^[A-Z0-9]{1,8}$/.test(k);}
+function settle(){
+  var ch=false;Object.keys(net.defis).forEach(function(k){var d=net.defis[k];
+    if(!goodSeed(k)||!d||d.f!==S.me||!(+d.b>=0)||S.settled[k])return;
+    var a=+d.a,b=+d.b;if(a>b){S.dw++;addXp(50);}else if(a<b)S.dl++;else S.dn++;
+    S.settled[k]={a:a,b:b};ch=true;});
+  if(ch)save();return ch;
+}
+function incoming(){return Object.keys(net.defis).filter(function(k){var d=net.defis[k];return goodSeed(k)&&d&&d.f===other()&&!(+d.b>=0)&&S.seeds.indexOf(k)<0;});}
+function waiting(){return Object.keys(net.defis).filter(function(k){var d=net.defis[k];return goodSeed(k)&&d&&d.f===S.me&&!(+d.b>=0);}).length;}
+function defiSync(ok){
+  if(!canNet)return;var sd=cur.seed;
+  if(cur.vs==null){net.defis[sd]={f:S.me,a:ok,b:-1,t:Date.now()};put("d/"+sd,net.defis[sd]).catch(function(){net.ok=false;});}
+  else{if(net.defis[sd])net.defis[sd].b=ok;put("d/"+sd,{b:ok},"PATCH").catch(function(){net.ok=false;});}
+}
+function pickMe(k){
+  var own=S.owner;
+  if(own&&own!==k){try{localStorage.setItem(KEY+"-"+own,JSON.stringify(S));}catch(e){}var o=null;try{o=JSON.parse(localStorage.getItem(KEY+"-"+k));}catch(e){}S=Object.assign(JSON.parse(S0),o||{});}
+  S.me=k;S.owner=k;if(S.rival&&S.rival.who===k)S.rival=null;
+  net.checked=false;net.defis={};lastPush="";lastSave="";localSave();pull();
+}
+function netLine(){return'<p class="small muted"><span class="led '+(net.ok===true?"g":net.ok===false?"a":"")+'" style="width:9px;height:9px;margin-right:6px"></span>'+(net.ok===true?"Scores synchronisés en direct.":net.ok===false?"Pas de connexion : les scores se mettront à jour au retour du réseau.":"Connexion en cours.")+'</p>';}
+function taunt(){
+  var o=P[other()].n,r=S.rival;
+  if(!r)return o+" n'a pas encore de score. Dès qu'il joue, il apparaît ici.";
+  var diff=S.xp-r.xp;
+  if(diff>0)return"Tu mènes de "+diff+" points. "+o+" ne va pas te laisser tranquille longtemps.";
+  if(diff<0)return o+" a "+(-diff)+" points d'avance. Un défi du jour sans faute et tu reviens.";
+  return"Égalité parfaite avec "+o+". Le prochain quiz fait la différence.";
+}
+function defiBanner(){var inc=incoming(),o=P[other()].n;if(!inc.length)return"";
+  return'<div class="modes">'+inc.slice(0,2).map(function(k){return'<button class="mode wide" style="border-color:var(--fire)" data-defi="'+k+'">'+ico("flag","f")+'<span><span class="t">'+esc(o)+' te lance un défi</span><span class="d">10 questions, les mêmes que lui. Le gagnant prend 50 points.</span></span></button>';}).join("")+'</div>';}
+function defiBlock(){
+  if(cur.mode!=="defi")return"";var o=P[other()].n;
+  if(cur.vs!=null)return'<p><b>'+(cur.ok>cur.vs?"Défi gagné":cur.ok<cur.vs?"Défi perdu":"Égalité")+'.</b> Toi '+cur.ok+', '+esc(o)+' '+cur.vs+'.</p>';
+  if(net.ok===true)return'<p><b>Défi envoyé.</b> '+esc(o)+' le verra sur son accueil et jouera les mêmes questions. Le résultat s\'affichera chez toi.</p>';
+  return'<p>Pas de connexion. Envoie ce code à '+esc(o)+' par message.</p><input class="code" id="mycode" readonly value="DF-'+cur.seed+'-'+S.me.toUpperCase()+'-'+cur.ok.toString(36).toUpperCase()+'"><button class="btn go" data-act="copy"><span class="t" id="copylbl">Copier le code du défi</span></button>';
+}
+function scores(msg){
+  var o=P[other()].n,inc=incoming(),w=waiting(),last=Object.keys(S.settled).slice(-5).reverse();
+  app.innerHTML=head(1)+'<h1>Défis</h1>'+
+  '<section class="panel">'+netLine()+'<p class="num"><b>'+S.dw+'</b> gagné'+(S.dw>1?"s":"")+', <b>'+S.dl+'</b> perdu'+(S.dl>1?"s":"")+', '+S.dn+' nul'+(S.dn>1?"s":"")+'.</p><p class="small muted">Tu joues 10 questions, '+esc(o)+' reçoit le défi sur son accueil et joue les mêmes. Le gagnant prend 50 points.</p><button class="btn go" data-act="defi"><span class="t">Lancer un défi</span><span class="arrow">→</span></button></section>'+
+  '<section class="panel"><h2>Reçus</h2>'+(inc.length?inc.map(function(k){return'<button class="btn fire" data-defi="'+k+'"><span><span class="t">Défi de '+esc(o)+'</span><br><span class="d">À relever</span></span><span class="arrow">→</span></button>';}).join(""):'<p class="muted">Aucun défi à relever.</p>')+'</section>'+
+  '<section class="panel"><h2>Envoyés</h2><p class="num">'+(w?w+" en attente de la réponse de "+esc(o)+".":"Aucun défi en attente.")+'</p>'+last.map(function(k){var d=S.settled[k];return'<div class="row"><span>'+(d.a>d.b?"Gagné":d.a<d.b?"Perdu":"Nul")+'</span><span class="num">Toi <b>'+(+d.a)+'</b> · '+esc(o)+' <b>'+(+d.b)+'</b></span></div>';}).join("")+'</section>'+
+  '<details><summary>Sans connexion : passer par un code</summary><section class="panel"><label class="small muted" for="mycode">Mon code de score</label><input class="code" id="mycode" readonly value="'+esc(code())+'"><button class="btn" data-act="copy"><span class="t" id="copylbl">Copier mon code</span></button><label class="small muted" for="hiscode">Un code de '+esc(o)+' (S3-… ou DF-…)</label><input class="code" id="hiscode" autocomplete="off" autocapitalize="characters" placeholder="S3-… ou DF-…"><button class="btn" data-act="paste"><span class="t">Valider le code</span></button></section></details>'+(typeof msg==="string"?'<p class="note">'+esc(msg)+'</p>':"");
+}
+function netStart(){
+  if(S.me&&!S.owner){S.owner=S.me;localSave();}
+  if(!canNet)return;
+  pull();setInterval(pull,30000);
+  if(document.addEventListener)document.addEventListener("visibilitychange",function(){if(!document.hidden)pull();});
 }
 
 /* ---------- événements ---------- */
 app.addEventListener("click",function(e){
   var tp=e.target.closest("[data-tip]");if(tp){var te=document.getElementById("tip");if(te)te.textContent=tp.dataset.tip;return;}
   var b=e.target.closest("button");if(!b)return;var d=b.dataset;
-  if(d.me){S.me=d.me;if(S.rival&&S.rival.who===S.me)S.rival=null;save();view={name:"home"};render();}
+  if(d.me){pickMe(d.me);view={name:"home"};render();}
+  else if(d.defi){var dd=net.defis[d.defi];if(dd&&goodSeed(d.defi))startDefi(d.defi,Math.max(0,Math.min(10,+dd.a||0)));}
   else if(d.go){view={name:d.go};render();}
   else if(d.fiche!=null){view={name:"fiche",t:+d.fiche};render();}
   else if(d.train!=null){var ids;
@@ -1009,7 +1112,7 @@ app.addEventListener("click",function(e){
     else{S.rival=r;S.rh[r.at]={xp:r.xp,pc:r.pc};save();view={name:"home"};render();}}
 });
 app.addEventListener("mouseover",function(e){var tp=e.target.closest&&e.target.closest("[data-tip]");if(tp){var te=document.getElementById("tip");if(te)te.textContent=tp.dataset.tip;}});
-function boot(data){load(data);render();}
+function boot(data){load(data);render();netStart();}
 try{if(window.claude&&window.claude.hot){window.claude.hot.snapshot(function(){return S;});}}catch(e){}
 if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(boot);else boot((window.claude&&window.claude.hot&&window.claude.hot.data)||{});
 </script>
