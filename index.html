@@ -10,20 +10,20 @@
 /* Idée : la façade d'un tableau SSI. Fond gris d'armoire, voyants vert / jaune / rouge qui disent l'état de chaque thème, lettrage condensé de signalétique. */
 :root{
   --bg:#E6EAE3; --surface:#F7F9F4; --ink:#17201B; --muted:#56615A; --line:#C6CDC3;
-  --evac:#0A7A4A; --on-evac:#FFFFFF; --fire:#C4221B; --amber:#C98A00; --off:#AEB6AC;
+  --evac:#0A7A4A; --on-evac:#FFFFFF; --fire:#C4221B; --amber:#C98A00; --off:#AEB6AC; --s1:#2a78d6; --s2:#eb6834;
   --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
   --body:"Barlow","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#111614; --surface:#1A221F; --ink:#E7ECE7; --muted:#96A29A; --line:#2F3A34;
-    --evac:#2FBF7F; --on-evac:#07150E; --fire:#FF6257; --amber:#F2B93B; --off:#46524B;
+    --evac:#2FBF7F; --on-evac:#07150E; --fire:#FF6257; --amber:#F2B93B; --off:#46524B; --s1:#3987e5; --s2:#d95926;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#111614; --surface:#1A221F; --ink:#E7ECE7; --muted:#96A29A; --line:#2F3A34;
-  --evac:#2FBF7F; --on-evac:#07150E; --fire:#FF6257; --amber:#F2B93B; --off:#46524B;
+  --evac:#2FBF7F; --on-evac:#07150E; --fire:#FF6257; --amber:#F2B93B; --off:#46524B; --s1:#3987e5; --s2:#d95926;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -82,6 +82,26 @@ input.code{width:100%;font:inherit;font-family:ui-monospace,Menlo,Consolas,monos
 .pick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pick button{background:var(--surface);border:2px solid var(--line);border-radius:6px;padding:20px 12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left}
 .pick .name{font-family:var(--display);font-weight:700;font-size:28px;text-transform:uppercase;line-height:1}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.tile b{display:block;font-family:var(--display);font-size:32px;line-height:1}
+.tile span{font-size:13px;color:var(--muted)}
+.chart svg{display:block;width:100%;height:auto}
+.chart text{font-family:var(--body);font-size:11px;fill:var(--muted)}
+.chart .nm{fill:var(--ink);font-weight:600}
+.legend{display:flex;gap:16px;font-size:14px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+#tip{font-size:14px;min-height:20px}
+details summary{cursor:pointer;font-size:14px;color:var(--muted);padding:6px 0}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;border-bottom:1px solid var(--line);padding:6px 0}
+.row:last-child{border-bottom:0}
+.up{color:var(--evac);font-weight:600}.down{color:var(--fire);font-weight:600}
+.card{border:2px solid var(--line);border-radius:6px;background:var(--surface);padding:24px 16px;min-height:190px;display:flex;flex-direction:column;gap:14px;justify-content:center;text-align:center}
+.card .front{font-family:var(--display);font-weight:700;font-size:28px;text-transform:uppercase;line-height:1.1}
+.card .back{font-size:19px;font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 /* duel face à face */
 .duel{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column}
 .half{flex:1;min-height:0;padding:10px 12px;display:flex;flex-direction:column;gap:8px;justify-content:center}
@@ -237,8 +257,137 @@ var Q=[
 [7,"En cas d'incendie, les ascenseurs :",["Ne doivent pas être utilisés","Servent à évacuer plus vite","Sont réservés au public","Montent au dernier étage"],"Risque de blocage et d'enfumage."],
 [7,"Après un sinistre, le chef d'équipe rédige :",["Un compte rendu et la main courante","Un permis de feu","Un arrêté de fermeture","Un avis de commission"],"Chronologie, actions menées, moyens utilisés."]
 ];
+Q=Q.concat([
+[0,"Le point d'éclair est la température où un liquide :",["Émet assez de vapeurs pour s'enflammer à la flamme","S'enflamme tout seul","Se met à bouillir","Devient solide"],"Sans flamme, il faut atteindre la température d'auto-inflammation."],
+[0,"À sa température d'auto-inflammation, un corps :",["S'enflamme sans apport de flamme","Commence à fondre","Émet ses premières vapeurs","Cesse de brûler"],"La chaleur seule suffit."],
+[0,"Un mélange de gaz et d'air ne s'enflamme que :",["Entre la LIE et la LSE","Au-dessus de la LSE","En dessous de la LIE","À 100 % de gaz"],"Limites inférieure et supérieure d'explosivité."],
+[0,"La pyrolyse est :",["La décomposition d'un solide par la chaleur","L'extinction par la poudre","Une explosion de gaz","Le refroidissement des fumées"],"Elle dégage des gaz inflammables."],
+[0,"Le monoxyde de carbone (CO) est un gaz :",["Toxique, incolore et inodore","Inerte","Visible et piquant","Sans danger"],"Il vient d'une combustion incomplète."],
+[0,"Un feu enflamme la façade d'en face sans contact. C'est :",["Le rayonnement","La conduction","La convection","La projection"],"La chaleur voyage sans support."],
+[0,"Des brandons portés par le vent propagent le feu par :",["Projection","Rayonnement","Conduction","Convection"],"Déplacement de matières enflammées."],
+[0,"Fermer la vanne de gaz, c'est agir sur :",["Le combustible","Le comburant","L'énergie d'activation","La fumée"],"On retire un côté du triangle."],
+[0,"La poudre BC éteint surtout par :",["Inhibition","Refroidissement","Dilution","Isolement"],"Elle bloque la réaction chimique de la flamme."],
+[1,"Une bibliothèque est un ERP de type :",["S","T","Y","L"],"S : bibliothèques, centres de documentation."],
+[1,"Une salle d'exposition est un ERP de type :",["T","S","M","Y"],"T : salles d'exposition."],
+[1,"Un musée est un ERP de type :",["Y","T","S","L"],"Y : musées."],
+[1,"Un lieu de culte est un ERP de type :",["V","W","Y","L"],"V : établissements de culte."],
+[1,"Un gymnase couvert est un ERP de type :",["X","PA","P","L"],"X : établissements sportifs couverts."],
+[1,"Un stade de plein air est un ERP de type :",["PA","X","SG","PS"],"PA : établissements de plein air."],
+[1,"Une gare est un ERP de type :",["GA","EF","OA","PS"],"GA : gares accessibles au public."],
+[1,"Un IGH à usage d'hôtel est classé :",["GHO","GHA","GHW","GHR"],"GHO : hôtel."],
+[1,"Un IGH à usage sanitaire est classé :",["GHU","GHS","GHZ","GHO"],"GHU : sanitaire."],
+[1,"Un ITGH est un immeuble de plus de :",["200 m","100 m","150 m","300 m"],"Immeuble de très grande hauteur."],
+[1,"En type M, le seuil de la 5e catégorie est de :",["200 personnes au total","100 personnes au total","300 personnes au total","50 personnes au total"],"100 en sous-sol, 100 en étages, 200 au total."],
+[1,"Le public d'un ERP, ce sont :",["Toutes les personnes admises, hors personnel","Seulement les clients payants","Seulement les inscrits","Les salariés"],"Admises à quelque titre que ce soit."],
+[2,"Un local de moins de 20 personnes exige :",["1 dégagement de 1 UP","2 dégagements","1 dégagement de 2 UP","3 dégagements"],"De 1 à 19 personnes : une sortie de 0,90 m."],
+[2,"Les portes s'ouvrent dans le sens de la sortie au-delà de :",["50 personnes","19 personnes","100 personnes","200 personnes"],"Locaux recevant plus de 50 personnes."],
+[2,"Un canton de désenfumage mesure au plus :",["1 600 m²","1 000 m²","2 500 m²","500 m²"],"Et 60 m de longueur."],
+[2,"Un écran de cantonnement sert à :",["Retenir la fumée sous le plafond","Arrêter le feu 2 heures","Baliser la sortie","Porter la toiture"],"Il limite l'étalement des fumées."],
+[2,"Un exutoire est :",["Une ouverture à fumées en toiture","Une bouche d'incendie","Une porte coupe-feu","Un détecteur"],"Désenfumage naturel."],
+[2,"L'euroclasse A1 correspond à :",["Incombustible","Très inflammable","Moyennement inflammable","Non classé"],"Équivalent du M0."],
+[2,"Stable au feu : l'élément garde :",["Sa résistance mécanique","Son isolation thermique","Sa couleur","Son étanchéité aux gaz"],"Critère R."],
+[2,"BAES signifie :",["Bloc autonome d'éclairage de sécurité","Boîtier d'alarme et d'évacuation","Bouche d'aspiration","Balisage des accès"],"Il s'allume quand le secteur tombe."],
+[2,"La force portante d'une voie engins est de :",["160 kilonewtons","90 kilonewtons","300 kilonewtons","50 kilonewtons"],"Avec 90 kN maximum par essieu."],
+[2,"La hauteur libre d'une voie engins est de :",["3,50 m","3 m","4 m","2,80 m"],"3 m de large, 3,50 m de haut."],
+[2,"Un dégagement protégé met le public à l'abri :",["Des flammes et des fumées","Du bruit","Du froid","Des vols"],"Encloisonné ou à l'air libre."],
+[2,"Le balisage lumineux des sorties relève de l'éclairage :",["D'évacuation","D'ambiance","Normal","De remplacement"],"L'ambiance, c'est l'anti-panique."],
+[3,"L'équipement d'alarme le plus simple est le type :",["4","1","2b","3"],"Sifflet, cloche, bloc autonome."],
+[3,"L'alarme générale sélective s'adresse :",["À certains personnels désignés","Au public seul","Aux pompiers","Aux voisins"],"Par exemple en établissement de soins."],
+[3,"En position de sécurité, une porte coupe-feu est :",["Fermée","Ouverte","Verrouillée","Démontée"],"Elle recoupe le bâtiment."],
+[3,"En position de sécurité, un volet de désenfumage est :",["Ouvert","Fermé","Bloqué","Hors tension"],"Il laisse passer l'air ou les fumées."],
+[3,"En position de sécurité, un clapet coupe-feu est :",["Fermé","Ouvert","Entrouvert","Démonté"],"Il obture le conduit."],
+[3,"Le réarmement du SSI se fait au niveau d'accès :",["2","1","3","4"],"1 tout le monde, 2 exploitation, 3 maintenance, 4 constructeur."],
+[3,"L'UCMC est :",["L'unité de commande manuelle centralisée","L'unité de contrôle des caméras","Un détecteur","Une sirène"],"Commande manuelle des DAS depuis le CMSI."],
+[3,"L'AES est :",["L'alimentation électrique de sécurité","L'alarme d'évacuation sonore","L'agent d'exploitation","L'arrêt d'urgence"],"Elle maintient le SSI en service."],
+[3,"Dans une circulation, le détecteur le plus courant est :",["Optique de fumée","De flamme","Thermique","De gaz"],"Il réagit aux fumées visibles."],
+[3,"L'alarme restreinte prévient :",["Le personnel du poste de sécurité","Tout le public","Les pompiers","Le maire"],"Signal distinct, au poste."],
+[3,"Le SDI regroupe :",["Détecteurs, déclencheurs manuels, ECS","CMSI et DAS","Extincteurs et RIA","Sirènes seules"],"Système de détection incendie."],
+[3,"Après une alarme, on réarme d'abord :",["L'ECS","Le CMSI","Les DAS","La sirène"],"ECS, puis CMSI, puis DAS en position d'attente."],
+[4,"Un extincteur portatif pèse au plus :",["20 kg","10 kg","30 kg","50 kg"],"Au-delà, il est monté sur roues."],
+[4,"La colonne sèche est imposée si le dernier plancher dépasse :",["18 m","8 m","28 m","50 m"],"Plancher bas du dernier niveau à plus de 18 m."],
+[4,"Le raccord d'une colonne sèche est à moins de :",["60 m d'un point d'eau","100 m d'un point d'eau","200 m d'un point d'eau","10 m d'un point d'eau"],"Bouche ou poteau d'incendie à 60 m au plus."],
+[4,"Un poteau d'incendie bleu est :",["Un poteau d'aspiration","Un poteau sous pression","Hors service","Réservé au gaz"],"Rouge sous pression, bleu aspiration, jaune surpressé."],
+[4,"Un poteau d'incendie jaune est :",["Surpressé","D'aspiration","Privé","Hors gel"],"Réseau à pression élevée."],
+[4,"Un RIA est dit armé parce qu'il est :",["En eau en permanence","Verrouillé","Réservé aux pompiers","Vide"],"Prêt à servir."],
+[4,"Un réseau sprinkleur sous air s'utilise :",["Quand il y a risque de gel","Dans les bureaux chauffés","Dans tous les IGH","Jamais"],"Parkings, entrepôts froids."],
+[4,"Avant une extinction automatique à gaz, on doit :",["Évacuer le local","Ouvrir les fenêtres","Couper l'alarme","Arroser"],"Un signal et une temporisation préviennent."],
+[4,"Lequel fait partie des moyens de secours (MS) ?",["Le système d'alerte","Le désenfumage","L'éclairage de sécurité","Les dégagements"],"MS : extinction, SSI, alerte, service de sécurité."],
+[4,"Le RIA a l'avantage d'être utilisable :",["Par une seule personne","Seulement à trois","Seulement par les pompiers","Sans eau"],"Tuyau semi-rigide, toujours en eau."],
+[5,"Dans un ERP, le responsable de la sécurité est :",["L'exploitant","Le chef d'équipe SSIAP 2","Le maire","Le préfet"],"Le chef d'établissement."],
+[5,"La prévention vise à :",["Limiter l'éclosion et la propagation du feu","Éteindre l'incendie","Soigner les victimes","Indemniser les dégâts"],"Et à permettre l'évacuation et l'action des secours."],
+[5,"La prévision, c'est :",["Préparer l'intervention contre le sinistre","Empêcher le feu de naître","Assurer le bâtiment","Former le public"],"Moyens de secours, plans, consignes."],
+[5,"La formation SSIAP 2 dure, hors examen :",["70 heures","35 heures","67 heures","216 heures"],"SSIAP 1 : 67 h. SSIAP 3 : 216 h."],
+[5,"Pour entrer en SSIAP 2, il faut avoir exercé comme agent :",["1 607 h sur 24 mois","500 h sur 12 mois","3 ans à temps plein","Aucune ancienneté"],"Avec le SSIAP 1."],
+[5,"Le certificat médical d'entrée en formation a moins de :",["3 mois","1 mois","6 mois","1 an"],"Aptitude physique."],
+[5,"Le QCM de l'examen SSIAP 2 compte :",["40 questions","20 questions","30 questions","60 questions"],"40 questions en 40 minutes."],
+[5,"Le jury de l'examen SSIAP est présidé par :",["Le directeur du SDIS ou son représentant","Le maire","Le formateur","Le client"],"Un officier de sapeurs-pompiers."],
+[5,"L'épreuve pratique du SSIAP 2 porte sur :",["La gestion du PC en situation de crise","Une ronde chronométrée","Un parcours sportif","Un rapport de 10 pages"],"Avec aussi un oral d'animation de séquence pédagogique."],
+[5,"Les règles des ERP figurent dans le code :",["De la construction et de l'habitation","Pénal","De la route","Du commerce"],"CCH."],
+[5,"La fermeture d'un ERP est décidée par :",["Le maire, par arrêté","La commission de sécurité","Le chef du service de sécurité","L'assureur"],"Ou le préfet à sa place."],
+[5,"Avant l'ouverture, la commission fait une visite :",["De réception","Inopinée","Périodique","De courtoisie"],"Puis des visites périodiques."],
+[5,"Le SSIAP 3 est ouvert au SSIAP 2 après :",["3 ans d'expérience","1 an d'expérience","5 ans d'expérience","10 ans d'expérience"],"Ou avec un diplôme de niveau 4."],
+[6,"Avec un agent compétent et autonome, le bon style est :",["Délégatif","Directif","Autoritaire","Absent"],"On confie et on contrôle le résultat."],
+[6,"On recadre un agent :",["En privé, sur des faits","Devant l'équipe","Par message collectif","Jamais"],"Des faits précis, pas la personne."],
+[6,"Le repos quotidien minimal est de :",["11 heures consécutives","8 heures consécutives","9 heures consécutives","24 heures"],"Entre deux vacations."],
+[6,"Sur une même semaine, on ne dépasse pas :",["48 heures de travail","35 heures de travail","60 heures de travail","40 heures de travail"],"Durée maximale hebdomadaire."],
+[6,"La méthode interrogative consiste à :",["Faire trouver par des questions","Dicter le cours","Montrer un geste","Distribuer un livret"],"L'apprenant construit la réponse."],
+[6,"Un plan de prévention est exigé au-delà de :",["400 heures de travaux par an","100 heures de travaux par an","1 000 heures de travaux par an","10 heures de travaux par an"],"Ou pour des travaux dangereux."],
+[6,"Les EPI sont fournis :",["Gratuitement par l'employeur","Par le salarié","Par le client","Par la mairie"],"Équipements de protection individuelle."],
+[6,"Une ronde de sécurité sert d'abord à :",["Repérer les anomalies","Faire du sport","Compter les clients","Vérifier les prix"],"Dégagements encombrés, portes coupe-feu calées."],
+[6,"Une consigne particulière concerne :",["Un local ou un risque précis","Tout l'établissement","Seulement le public","Les pompiers"],"Les consignes générales valent pour tous."],
+[6,"Le CSE est obligatoire à partir de :",["11 salariés","5 salariés","50 salariés","100 salariés"],"Comité social et économique."],
+[6,"En fin de vacation, le chef d'équipe assure :",["La passation des consignes","La fermeture du registre","Le réarmement du SSI","La paie"],"Événements, anomalies, travaux en cours."],
+[7,"L'alarme sert à prévenir :",["Les occupants du bâtiment","Les secours publics","L'assureur","La presse"],"L'alerte, c'est prévenir les secours."],
+[7,"L'alerte, c'est :",["Prévenir les secours","Faire sonner la sirène","Évacuer","Réarmer"],"À ne pas confondre avec l'alarme."],
+[7,"Un dérangement apparaît au tableau. On doit :",["Le noter et prévenir la maintenance","L'ignorer","Couper le SSI","Évacuer"],"Rondes en compensation si une zone n'est plus surveillée."],
+[7,"Une zone de détection est coupée pour travaux. Il faut :",["Des mesures compensatoires","Ne rien faire","Arrêter tout le SSI","Fermer le site"],"Rondes, main courante, remise en service à la fin."],
+[7,"Une personne est bloquée en ascenseur. D'abord :",["Établir le contact et la rassurer","Forcer les portes","Couper le courant du site","Attendre"],"Puis appeler l'ascensoriste."],
+[7,"Devant une odeur de gaz, on évite surtout :",["D'actionner un interrupteur","D'ouvrir les fenêtres","De couper le gaz","D'évacuer"],"Une étincelle suffit."],
+[7,"Lors d'une évacuation, le serre-file :",["Vérifie que personne ne reste","Ouvre la marche","Appelle les secours","Réarme l'alarme"],"Le guide-file, lui, mène le groupe."],
+[7,"Après l'évacuation, le public se regroupe :",["Au point de rassemblement","Dans le hall","Au parking souterrain","Au poste de sécurité"],"On y fait le recensement."],
+[7,"Face à un malaise, le secouriste commence par :",["Protéger","Alerter","Secourir","Déplacer la victime"],"Protéger, examiner, faire alerter, secourir."],
+[7,"Alerte à la bombe par téléphone. On prévient :",["La police ou la gendarmerie","Personne","Seulement le client","Les médias"],"Et on note tout ce que dit l'appelant."],
+[7,"Au COS, on indique en priorité :",["Le lieu du sinistre et les victimes","Le planning de l'équipe","Le nom de l'assureur","Les horaires du site"],"Puis les actions déjà menées."],
+[7,"Le poste de sécurité doit être occupé :",["En permanence en présence du public","Une heure sur deux","Seulement la nuit","Seulement à l'ouverture"],"Au moins un agent au poste."]
+]);
+[
+ ["Point d'éclair : le liquide émet assez de vapeurs pour s'enflammer à la flamme. Auto-inflammation : il s'enflamme sans flamme.","Un gaz ne brûle qu'entre sa LIE et sa LSE. Le monoxyde de carbone est toxique, incolore et inodore."],
+ ["Autres types : S bibliothèques, T expositions, V culte, X sport couvert, Y musées, GA gares.","Type M : 5e catégorie jusqu'à 200 personnes (100 en sous-sol, 100 en étages). ITGH : plus de 200 m."],
+ ["Moins de 20 personnes : 1 dégagement de 1 UP. Portes dans le sens de la sortie au-delà de 50 personnes.","Canton de désenfumage : 1 600 m² et 60 m maximum. Voie engins : 160 kN de force portante."],
+ ["Position de sécurité : porte coupe-feu et clapet fermés, volet de désenfumage et exutoire ouverts.","Niveaux d'accès : 1 tout le monde, 2 exploitation (réarmement), 3 maintenance, 4 constructeur. Réarmement : ECS, puis CMSI, puis DAS."],
+ ["Extincteur portatif : 20 kg maximum. Colonne sèche : dernier plancher à plus de 18 m, raccord à moins de 60 m d'un point d'eau.","Poteaux : rouge sous pression, bleu aspiration, jaune surpressé. Sprinkleur sous air en zone de gel."],
+ ["Prévention : empêcher l'éclosion et la propagation, permettre l'évacuation et l'action des secours. Prévision : préparer l'intervention.","Formation SSIAP 2 : 70 h, après 1 607 h comme agent sur 24 mois. Jury présidé par le directeur du SDIS ou son représentant."],
+ ["Repos quotidien : 11 h consécutives. Semaine : 48 h maximum. Plan de prévention au-delà de 400 h de travaux par an.","Recadrer en privé, sur des faits. Consignes générales pour tous, particulières pour un local ou un risque."],
+ ["Alarme : prévenir les occupants. Alerte : prévenir les secours.","Dérangement ou zone coupée : main courante, maintenance, rondes en compensation. Ascenseur bloqué : contact, rassurer, ascensoriste."]
+].forEach(function(a,i){T[i].f=T[i].f.concat(a);});
+/* fiches transversales */
+var X=[
+ {n:"Chiffres à savoir par cœur",f:["Catégories ERP : 1 500 / 700 / 300.","IGH : 50 m en habitation, 28 m ailleurs. Compartiment 2 500 m². ITGH 200 m.","Dégagements : UP 0,60 m ; 1 UP 0,90 m ; 2 UP 1,40 m. Sens de sortie au-delà de 50 personnes.","Désenfumage : canton 1 600 m², 60 m.","Alarme : générale 5 minutes minimum, temporisation 5 minutes maximum. Déclencheur manuel à 1,30 m.","Éclairage de sécurité : 1 heure, 5 lumens par m² en ambiance.","Extincteur : 6 litres pour 200 m², 20 kg maximum en portatif.","RIA : 2,5 bars. Poteau DN 100 : 60 m3/h sous 1 bar. Colonne sèche : 18 m, raccord à 60 m d'un point d'eau.","Voie engins : 3 m, 3,50 m, 160 kN. Voie échelle : 4 m sur 10 m.","Permis de feu : 2 heures de surveillance. Exercice d'évacuation : 6 mois. Accident du travail : 48 heures.","SSIAP : recyclage tous les 3 ans (14 h), remise à niveau 21 h, 1 607 h sur 36 mois, formation 70 h.","Service de sécurité : 3 personnes dont un chef d'équipe."]},
+ {n:"Sigles",f:["SSI : système de sécurité incendie. SDI : système de détection incendie. SMSI : système de mise en sécurité incendie.","ECS : équipement de contrôle et de signalisation. CMSI : centralisateur de mise en sécurité incendie.","UGA : unité de gestion d'alarme. UCMC : unité de commande manuelle centralisée. US : unité de signalisation.","DAS : dispositif actionné de sécurité. DM : déclencheur manuel. AES : alimentation électrique de sécurité.","ZD détection, ZA alarme, ZC compartimentage, ZF désenfumage, ZS mise en sécurité.","ERP : établissement recevant du public. IGH : immeuble de grande hauteur. ITGH : très grande hauteur.","UP : unité de passage. EAS : espace d'attente sécurisé. BAES : bloc autonome d'éclairage de sécurité.","RIA : robinet d'incendie armé. LIE et LSE : limites inférieure et supérieure d'explosivité.","COS : commandant des opérations de secours. SDIS : service départemental d'incendie et de secours.","CCDSA : commission consultative départementale de sécurité et d'accessibilité.","DUERP : document unique d'évaluation des risques professionnels. CSE : comité social et économique. EPI : équipement de protection individuelle."]},
+ {n:"Conduite à tenir au PC",f:["Alarme feu : acquitter le signal sonore, lire la zone, envoyer un agent avec radio et extincteur, noter l'heure.","Feu confirmé : alarme générale, alerte des secours, première attaque si c'est possible sans risque, agent à l'accueil des secours.","Alarme non confirmée : chercher la cause, réarmer, noter en main courante.","Arrivée des secours : lieu, nature du feu, victimes, actions menées, fluides coupés. Plans et clés à disposition du COS.","Fin de sinistre : réarmer ECS puis CMSI, remettre les DAS en attente, vérifier les moyens utilisés, compte rendu.","Dérangement : identifier, noter, prévenir la maintenance, rondes en compensation.","Malaise : protéger, examiner, faire alerter, secourir. Guider les secours jusqu'à la victime.","Ascenseur bloqué : garder le contact, rassurer, appeler l'ascensoriste. Pas de manœuvre sans formation."]},
+ {n:"L'examen et la formation",f:["Formation SSIAP 2 : 70 heures hors examen.","Épreuve écrite : QCM de 40 questions en 40 minutes. Il faut 12/20.","Épreuve orale : animer une séquence pédagogique devant le jury.","Épreuve pratique : gérer le PC en situation de crise.","Au QCM : lire la question jusqu'au bout, repérer les mots « ne pas », « sauf », « au moins ».","À l'oral : annoncer l'objectif, dérouler le plan, faire participer, vérifier que c'est compris.","Au PC : parler fort et court, donner des ordres nominatifs, noter les heures, rendre compte.","Recyclage : 14 heures tous les 3 ans. Remise à niveau : 21 heures."]}
+];
+/* cartes mémo : [recto, verso] */
+var M=[
+["Unité de passage","0,60 m"],["Dégagement de 1 UP","0,90 m"],["Dégagement de 2 UP","1,40 m"],
+["ERP de 1re catégorie","Plus de 1 500 personnes"],["ERP de 2e catégorie","De 701 à 1 500 personnes"],["ERP de 3e catégorie","De 301 à 700 personnes"],["ERP de 4e catégorie","300 personnes et moins, hors 5e"],
+["IGH habitation","Dernier plancher à plus de 50 m"],["IGH hors habitation","Dernier plancher à plus de 28 m"],["Compartiment d'IGH","2 500 m² maximum"],["Canton de désenfumage","1 600 m² et 60 m maximum"],
+["Durée de l'alarme générale","5 minutes minimum"],["Temporisation de l'alarme restreinte","5 minutes maximum"],["Hauteur d'un déclencheur manuel","1,30 m environ"],
+["Autonomie de l'éclairage de sécurité","1 heure"],["Éclairage d'ambiance","5 lumens par m²"],
+["Extincteurs (code du travail)","6 litres pour 200 m², un par niveau au moins"],["Pression minimale d'un RIA","2,5 bars"],["Poteau d'incendie DN 100","60 m3/h sous 1 bar"],
+["Colonne sèche obligatoire","Dernier plancher à plus de 18 m"],["Colonne en charge","IGH de plus de 50 m"],["Sprinkleur à ampoule rouge","68 °C"],
+["Voie engins","3 m de large, 3,50 m de haut, 160 kN"],["Voie échelle","4 m de large, 10 m de long minimum"],
+["Surveillance après point chaud","2 heures au moins"],["Exercices d'évacuation","Au moins tous les 6 mois"],["Déclaration d'accident du travail","48 heures"],
+["Recyclage SSIAP 2","14 heures, tous les 3 ans"],["Remise à niveau SSIAP 2","21 heures"],["Activité exigée pour le recyclage","1 607 heures sur 36 mois"],["QCM SSIAP 2","40 questions, 40 minutes, 12/20"],
+["Effectif minimal du service (MS 46)","3 personnes dont un chef d'équipe"],["Repos quotidien","11 heures consécutives"],
+["Classes de feux","A solides, B liquides, C gaz, D métaux, F huiles de cuisson"],["Triangle du feu","Combustible, comburant, énergie d'activation"],["Modes de propagation","Conduction, convection, rayonnement, projection"],
+["SSI","Système de sécurité incendie"],["SDI","Système de détection incendie"],["SMSI","Système de mise en sécurité incendie"],["CMSI","Centralisateur de mise en sécurité incendie"],["ECS","Équipement de contrôle et de signalisation"],["UGA","Unité de gestion d'alarme"],["DAS","Dispositif actionné de sécurité"],["UCMC","Unité de commande manuelle centralisée"],
+["ZF","Zone de désenfumage"],["ZC","Zone de compartimentage"],["EAS","Espace d'attente sécurisé"],["BAES","Bloc autonome d'éclairage de sécurité"],["COS","Commandant des opérations de secours"],["CCDSA","Commission consultative départementale de sécurité et d'accessibilité"],
+["Alarme ou alerte ?","Alarme : les occupants. Alerte : les secours."],["Type M","Magasins, centres commerciaux"],["Type L","Spectacles, conférences, réunions"],["Type J","Personnes âgées et handicapées"],["Type U","Établissements de soins"],["Type W","Administrations, banques, bureaux"]
+];
+
 var KEY="duel-ssiap2-v1";
-var S={me:null,xp:0,streak:0,last:"",res:{},daily:{},exam:0,duel:{r:0,l:0},rival:null};
+var S={me:null,xp:0,streak:0,last:"",res:{},daily:{},exam:0,duel:{r:0,l:0},rival:null,hist:[],days:{},rh:{},memo:{},best:0,ns:0};
 var app=document.getElementById("app");
 var view={name:"home"},cur=null,timer=null;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -260,14 +409,14 @@ function code(){var d=S.daily[dayStr()];return["S2",S.me.toUpperCase(),S.xp.toSt
 function parseCode(s){var p=String(s).trim().toUpperCase().split("-");if(p.length!==8||p[0]!=="S2")return null;var w=p[1].toLowerCase();if(w!=="r"&&w!=="l")return null;
   var n=function(x){var v=parseInt(x,36);return isFinite(v)?v:0;};
   return{who:w,xp:n(p[2]),streak:n(p[3]),exam:n(p[4]),pc:Math.min(100,n(p[5])),day:p[6],daily:p[7]==="X"?null:n(p[7]),at:dayStr()};}
-function touchStreak(){var t=dayStr();if(S.last===t)return;var y=new Date();y.setDate(y.getDate()-1);S.streak=S.last===dayStr(y)?S.streak+1:1;S.last=t;}
+function touchStreak(){var t=dayStr();if(S.last===t)return;var y=new Date();y.setDate(y.getDate()-1);S.streak=S.last===dayStr(y)?S.streak+1:1;S.last=t;if(S.streak>S.best)S.best=S.streak;}
 
 /* ---------- écrans ---------- */
 function render(){
   if(timer){clearInterval(timer);timer=null;}
   window.scrollTo(0,0);
   if(!S.me)return pick();
-  ({home:home,themes:themes,fiches:fiches,fiche:fiche,quiz:quiz,end:end,scores:scores,duel:duel,duelEnd:duelEnd}[view.name]||home)();
+  ({home:home,themes:themes,fiches:fiches,fiche:fiche,quiz:quiz,end:end,scores:scores,duel:duel,duelEnd:duelEnd,parcours:parcours,memo:memo}[view.name]||home)();
 }
 function head(back){return'<div class="top"><div class="brand">SSIAP <b>2</b> · Duel</div>'+(back?'<button class="link" data-go="home">Retour au tableau</button>':'<button class="link" data-act="switch">'+esc(P[S.me].n)+' · changer</button>')+'</div>';}
 function pick(){
@@ -297,10 +446,11 @@ function home(){
   '<section class="panel"><div class="vs">'+playerCard("r")+playerCard("l")+'</div><p>'+esc(taunt())+'</p><button class="link" data-go="scores">Échanger les scores</button></section>'+
   '<div class="rows">'+
   '<button class="btn go" data-act="daily"><span><span class="t">Défi du jour</span><br><span class="d">'+(done!=null?"Fait : "+done+"/10. "+rd+" Tu peux le rejouer pour l'entraînement.":"10 questions, les mêmes pour vous deux. Points doublés. "+rd)+'</span></span><span class="arrow">→</span></button>'+
+  '<button class="btn" data-go="parcours"><span><span class="t">Mon parcours</span><br><span class="d">Courbe de progression, thèmes, examens, badges</span></span><span class="arrow">→</span></button>'+
   '<button class="btn" data-go="themes"><span><span class="t">Entraînement par thème</span><br><span class="d">10 questions corrigées une par une</span></span><span class="arrow">→</span></button>'+
   '<button class="btn" data-act="exam"><span><span class="t">Examen blanc</span><br><span class="d">40 questions en 40 minutes, comme le QCM. Admis à 12/20.</span></span><span class="arrow">→</span></button>'+
   '<button class="btn fire" data-act="duel"><span><span class="t">Duel face à face</span><br><span class="d">Un seul téléphone posé entre vous. Le plus rapide marque.</span></span><span class="arrow">→</span></button>'+
-  '<button class="btn" data-go="fiches"><span><span class="t">Fiches de cours</span><br><span class="d">L\'essentiel des 8 thèmes à relire</span></span><span class="arrow">→</span></button>'+
+  '<button class="btn" data-go="fiches"><span><span class="t">Fiches et cartes mémo</span><br><span class="d">12 fiches à relire, '+M.length+' cartes pour les chiffres et les sigles</span></span><span class="arrow">→</span></button>'+
   '</div>'+
   '<section class="panel"><h2>État des zones</h2>'+T.map(function(th,i){var m=mastery(i);return'<div class="theme"><span class="led '+led(m)+'"></span><span>'+esc(th.n)+'</span><span class="pc num">'+m.pc+' %</span></div>';}).join("")+
   '<p class="small muted">Éteint : pas encore vu. Jaune : à travailler. Rouge : trop d\'erreurs. Vert : 80 % et plus.</p></section>';
@@ -313,12 +463,90 @@ function themes(){
   T.map(function(th,i){var m=mastery(i);return'<button class="btn" data-train="'+i+'"><span class="theme" style="flex:1"><span class="led '+led(m)+'"></span><span><span class="t">'+esc(th.n)+'</span><br><span class="d">'+m.ok+' sur '+m.n+' acquises</span></span></span><span class="arrow">→</span></button>';}).join("")+'</div>';
 }
 function fiches(){
-  app.innerHTML=head(1)+'<h1>Fiches de cours</h1><div class="rows">'+T.map(function(th,i){return'<button class="btn" data-fiche="'+i+'"><span class="t">'+esc(th.n)+'</span><span class="arrow">→</span></button>';}).join("")+'</div><p class="small muted">Ces fiches résument les points qui tombent souvent. Le support du formateur et les textes officiels restent la référence.</p>';
+  var su=M.filter(function(_,i){return S.memo[i]===1;}).length;
+  app.innerHTML=head(1)+'<h1>Fiches et cartes mémo</h1>'+
+  '<div class="rows"><button class="btn go" data-act="memo"><span><span class="t">Cartes mémo</span><br><span class="d">15 cartes par série. '+su+' sur '+M.length+' sues.</span></span><span class="arrow">→</span></button></div>'+
+  '<h2>À savoir d\'un coup d\'œil</h2><div class="rows">'+X.map(function(th,i){return'<button class="btn" data-fiche="'+(T.length+i)+'"><span class="t">'+esc(th.n)+'</span><span class="arrow">→</span></button>';}).join("")+'</div>'+
+  '<h2>Par thème</h2><div class="rows">'+T.map(function(th,i){return'<button class="btn" data-fiche="'+i+'"><span class="t">'+esc(th.n)+'</span><span class="arrow">→</span></button>';}).join("")+'</div><p class="small muted">Ces fiches résument les points qui tombent souvent. Le support du formateur et les textes officiels restent la référence.</p>';
 }
 function fiche(){
-  var th=T[view.t];
-  app.innerHTML=head(1)+'<h1>'+esc(th.n)+'</h1><section class="panel"><ul>'+th.f.map(function(l){return"<li>"+esc(l)+"</li>";}).join("")+'</ul></section><div class="rows"><button class="btn go" data-train="'+view.t+'"><span class="t">Me tester sur ce thème</span><span class="arrow">→</span></button><button class="btn" data-go="fiches"><span class="t">Autres fiches</span><span class="arrow">→</span></button></div>';
+  var x=view.t>=T.length,th=x?X[view.t-T.length]:T[view.t];
+  app.innerHTML=head(1)+'<h1>'+esc(th.n)+'</h1><section class="panel"><ul>'+th.f.map(function(l){return"<li>"+esc(l)+"</li>";}).join("")+'</ul></section><div class="rows">'+(x?'<button class="btn go" data-act="memo"><span class="t">M\'entraîner avec les cartes mémo</span><span class="arrow">→</span></button>':'<button class="btn go" data-train="'+view.t+'"><span class="t">Me tester sur ce thème</span><span class="arrow">→</span></button>')+'<button class="btn" data-go="fiches"><span class="t">Autres fiches</span><span class="arrow">→</span></button></div>';
 }
+/* ---------- cartes mémo ---------- */
+function startMemo(){
+  var ids=shuffle(M.map(function(_,i){return i;}));
+  ids.sort(function(a,b){return(S.memo[a]===1?1:0)-(S.memo[b]===1?1:0);});
+  cur={ids:ids.slice(0,15),i:0,show:false,ok:0};view={name:"memo"};render();
+}
+function memo(){
+  if(!cur||!cur.ids||cur.show===undefined){view={name:"fiches"};return fiches();}
+  var n=cur.ids.length;
+  if(cur.i>=n){var su=M.filter(function(_,i){return S.memo[i]===1;}).length;
+    app.innerHTML=head(1)+'<section class="panel"><div class="meta"><span>Cartes mémo</span></div><div class="score num">'+cur.ok+'/'+n+'</div><p>'+(cur.ok===n?"Toutes sues. Les chiffres rentrent.":"Les cartes à revoir reviendront en premier à la prochaine série.")+'</p><p class="small muted num">Au total : '+su+' cartes sues sur '+M.length+'.</p></section><div class="rows"><button class="btn go" data-act="memo"><span class="t">Nouvelle série</span><span class="arrow">→</span></button><button class="btn" data-go="fiches"><span class="t">Retour aux fiches</span><span class="arrow">→</span></button></div>';return;}
+  var m=M[cur.ids[cur.i]];
+  app.innerHTML='<div class="top"><div class="brand">Cartes mémo</div><button class="link" data-go="fiches">Arrêter</button></div><div class="meta"><span>Carte</span><span class="num">'+(cur.i+1)+'/'+n+'</span></div><div class="bar"><i style="width:'+(cur.i/n*100)+'%"></i></div>'+
+  '<div class="card"><div class="front">'+esc(m[0])+'</div>'+(cur.show?'<div class="back">'+esc(m[1])+'</div>':'<div class="muted small">Dis la réponse à voix haute, puis vérifie.</div>')+'</div>'+
+  (cur.show?'<div class="two"><button class="btn fire" data-memo="0"><span class="t">À revoir</span></button><button class="btn go" data-memo="1"><span class="t">Je savais</span></button></div>':'<button class="btn go" data-act="flip"><span class="t">Voir la réponse</span></button>');
+}
+/* ---------- parcours ---------- */
+function dnum(s){var p=s.split("-");return Math.round(new Date(+p[0],+p[1]-1,+p[2]).getTime()/864e5);}
+function fr(s){return s.slice(8)+"/"+s.slice(5,7);}
+function totals(){var a=0,ok=0;Object.keys(S.days).forEach(function(d){a+=S.days[d].a;ok+=S.days[d].ok;});return{a:a,ok:ok};}
+function prevLine(){
+  var p=cur.prev;if(!p||p.n!==cur.ids.length)return"";var d=cur.ok-p.ok;
+  return'<p class="small">La dernière fois ('+fr(p.d)+') : '+p.ok+'/'+p.n+'. '+(d>0?'<span class="up">'+d+' bonne'+(d>1?"s":"")+' réponse'+(d>1?"s":"")+' de plus.</span>':d<0?'<span class="down">'+(-d)+' de moins, ça arrive.</span>':"Même score.")+'</p>';
+}
+function chart(){
+  var me=P[S.me].n,ot=P[other()].n;
+  var mine=Object.keys(S.days).sort().map(function(d){return{d:d,v:S.days[d].pc};});
+  var his=Object.keys(S.rh).sort().map(function(d){return{d:d,v:S.rh[d].pc};});
+  if(!mine.length&&!his.length)return'<p class="muted">Ta courbe démarre à ta première série de questions.</p>';
+  var t1=dnum(dayStr()),t0=Math.min.apply(null,mine.concat(his).map(function(p){return dnum(p.d);}));if(t1-t0<6)t0=t1-6;
+  var W=340,H=180,L=42,R=58,Tp=12,B=24;
+  var x=function(d){return L+(dnum(d)-t0)/(t1-t0)*(W-L-R);},y=function(v){return Tp+(100-v)/100*(H-Tp-B);};
+  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Part des questions acquises, jour par jour, pour '+me+' et '+ot+'">';
+  [0,50,100].forEach(function(v){s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="var(--line)" stroke-width="1"/><text x="'+(L-6)+'" y="'+(y(v)+4)+'" text-anchor="end">'+v+' %</text>';});
+  var d0=new Date(t0*864e5);
+  s+='<text x="'+L+'" y="'+(H-6)+'">'+pad(d0.getDate())+'/'+pad(d0.getMonth()+1)+'</text><text x="'+(W-R)+'" y="'+(H-6)+'" text-anchor="end">aujourd\'hui</text>';
+  var ends=[];
+  var serie=function(pts,col,name){
+    if(!pts.length)return;
+    if(pts.length>1)s+='<polyline fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="'+pts.map(function(p){return x(p.d).toFixed(1)+","+y(p.v).toFixed(1);}).join(" ")+'"/>';
+    pts.forEach(function(p){s+='<circle cx="'+x(p.d).toFixed(1)+'" cy="'+y(p.v).toFixed(1)+'" r="4" fill="'+col+'" stroke="var(--surface)" stroke-width="2"/><circle cx="'+x(p.d).toFixed(1)+'" cy="'+y(p.v).toFixed(1)+'" r="14" fill="transparent" data-tip="'+esc(name+" · "+fr(p.d)+" · "+p.v+" % des questions acquises")+'"/>';});
+    var l=pts[pts.length-1];ends.push({x:x(l.d)+9,y:y(l.v)+4,n:name});
+  };
+  serie(his,"var(--s2)",ot);serie(mine,"var(--s1)",me);
+  if(ends.length===2&&Math.abs(ends[0].y-ends[1].y)<13&&Math.abs(ends[0].x-ends[1].x)<50){var up=ends[0].y<=ends[1].y?0:1;ends[up].y-=7;ends[1-up].y+=7;}
+  ends.forEach(function(e){s+='<text class="nm" x="'+e.x.toFixed(1)+'" y="'+e.y.toFixed(1)+'">'+esc(e.n)+'</text>';});
+  s+="</svg>";
+  var dates={};mine.forEach(function(p){dates[p.d]=1;});his.forEach(function(p){dates[p.d]=1;});
+  var rows=Object.keys(dates).sort().reverse().map(function(d){var m=S.days[d],r=S.rh[d];return"<tr><td>"+fr(d)+"</td><td>"+(m?m.pc+" %":"")+"</td><td>"+(m&&m.a?m.ok+"/"+m.a:"")+"</td><td>"+(r?r.pc+" %":"")+"</td></tr>";}).join("");
+  return'<div class="legend"><span><i style="background:var(--s1)"></i>'+esc(me)+'</span><span><i style="background:var(--s2)"></i>'+esc(ot)+' (à chaque code reçu)</span></div><div class="chart">'+s+'</div><p id="tip" class="muted">Touche un point pour voir le détail.</p><details><summary>Voir le tableau</summary><table><thead><tr><th>Jour</th><th>'+esc(me)+'</th><th>Réponses du jour</th><th>'+esc(ot)+'</th></tr></thead><tbody>'+rows+'</tbody></table></details>';
+}
+function themeRow(th,i){
+  var m=mastery(i),cut=dnum(dayStr())-6,r=[0,0],o=[0,0];
+  Object.keys(S.days).forEach(function(d){var t=(S.days[d].t||{})[i];if(!t)return;var g=dnum(d)>=cut?r:o;g[0]+=t[0];g[1]+=t[1];});
+  var txt=r[0]?"7 derniers jours : "+r[1]+"/"+r[0]:"Pas travaillé cette semaine",tr="";
+  if(r[0]>=5&&o[0]>=5){var a=r[1]/r[0],b=o[1]/o[0];tr=a>b+.05?' <span class="up">en hausse</span>':a<b-.05?' <span class="down">en baisse</span>':" stable";txt+=" (avant : "+Math.round(b*100)+" %)";}
+  return'<div class="row"><span class="theme"><span class="led '+led(m)+'"></span><span>'+esc(th.n)+'<br><span class="small muted num">'+txt+tr+'</span></span></span><span class="pc num" style="font-family:var(--display);font-weight:700;font-size:20px">'+m.pc+' %</span></div>';
+}
+function parcours(){
+  var t=totals(),all=mastery(),o=P[other()].n,r=S.rival;
+  var exams=S.hist.filter(function(h){return h.m==="exam";});
+  var su=M.filter(function(_,i){return S.memo[i]===1;}).length;
+  var badges=[["Première série terminée",S.ns>=1],["100 questions répondues",t.a>=100],["500 questions répondues",t.a>=500],["3 jours de suite",S.best>=3],["7 jours de suite",S.best>=7],["Défi du jour sans faute",Object.keys(S.daily).some(function(d){return S.daily[d]===10;})],["Admis à l'examen blanc",S.exam>=24],["16/20 à l'examen blanc",S.exam>=32],["Toutes les zones au vert",T.every(function(_,i){return mastery(i).pc>=80;})],["Toutes les cartes mémo sues",su===M.length]];
+  var got=badges.filter(function(b){return b[1];}).length;
+  app.innerHTML=head(1)+'<h1>Mon parcours</h1>'+
+  '<section class="panel"><div class="tiles"><div class="tile"><b class="num">'+all.pc+' %</b><span>du programme acquis ('+all.ok+' questions sur '+all.n+')</span></div><div class="tile"><b class="num">'+(t.a?Math.round(t.ok/t.a*100)+" %":"0 %")+'</b><span>de bonnes réponses sur '+t.a+' répondues</span></div><div class="tile"><b class="num">'+S.ns+'</b><span>séries terminées</span></div><div class="tile"><b class="num">'+S.best+' j</b><span>meilleure série de jours (en cours : '+S.streak+')</span></div></div></section>'+
+  '<section class="panel"><h2>Progression</h2><p class="small muted">Part des questions acquises, jour après jour.</p>'+chart()+
+  '<p class="small">'+(r?esc(o)+" en était à "+r.pc+" % et "+r.xp+" pts dans son code du "+fr(r.at)+". Toi : "+all.pc+" % et "+S.xp+" pts.":"Colle le code de "+esc(o)+" pour voir sa courbe à côté de la tienne.")+'</p><button class="link" data-go="scores">Échanger les scores</button></section>'+
+  '<section class="panel"><h2>Thème par thème</h2>'+T.map(themeRow).join("")+'</section>'+
+  '<section class="panel"><h2>Examens blancs</h2>'+(exams.length?exams.slice().reverse().map(function(h,i,a){var p=a[i+1],d=p?h.ok-p.ok:0;return'<div class="row"><span>'+fr(h.d)+'</span><span class="num"><b>'+(h.ok/2).toLocaleString("fr-FR")+'/20</b> '+(h.ok>=24?"admis":"non admis")+(p?(d>0?' <span class="up">+'+(d/2).toLocaleString("fr-FR")+'</span>':d<0?' <span class="down">'+(d/2).toLocaleString("fr-FR")+'</span>':""):"")+'</span></div>';}).join(""):'<p class="muted">Aucun examen blanc pour l\'instant. Le premier sert de point de départ.</p>')+'</section>'+
+  '<section class="panel"><h2>Badges</h2><p class="small muted num">'+got+' sur '+badges.length+' obtenus</p>'+badges.map(function(b){return'<div class="theme"><span class="led '+(b[1]?"g":"")+'"></span><span'+(b[1]?"":' class="muted"')+'>'+esc(b[0])+'</span></div>';}).join("")+'</section>'+
+  '<section class="panel"><h2>Dernières séries</h2>'+(S.hist.length?S.hist.slice(-12).reverse().map(function(h){return'<div class="row"><span>'+fr(h.d)+' · '+esc(h.t)+'</span><span class="num"><b>'+h.ok+'/'+h.n+'</b></span></div>';}).join(""):'<p class="muted">Rien pour l\'instant.</p>')+'</section>';
+}
+
 /* ---------- quiz ---------- */
 function start(ids,mode,title){
   cur={ids:ids,mode:mode,title:title,i:0,ans:[],order:ids.map(function(){return shuffle([0,1,2,3]);}),picked:null,end:mode==="exam"?Date.now()+40*60*1000:0};
@@ -347,6 +575,11 @@ function finish(){
   if(cur.mode==="daily"){if(S.daily[t]==null){S.daily[t]=ok;gain=ok*20+(ok===n?50:0);}else gain=ok*2;}
   else if(cur.mode==="exam"){gain=ok*5+(ok>=24?100:0);if(ok>S.exam)S.exam=ok;}
   else gain=ok*10+(ok===n&&n>=5?30:0);
+  var day=S.days[t]||(S.days[t]={a:0,ok:0,pc:0,t:{}});
+  cur.ids.forEach(function(id,i){if(cur.ans[i]==null&&cur.mode!=="exam")return;var good=cur.ans[i]===0,th=Q[id][0],tt=day.t[th]||(day.t[th]=[0,0]);day.a++;tt[0]++;if(good){day.ok++;tt[1]++;}});
+  day.pc=mastery().pc;S.ns++;
+  cur.prev=null;for(var k=S.hist.length-1;k>=0;k--){if(S.hist[k].t===cur.title){cur.prev=S.hist[k];break;}}
+  S.hist.push({d:t,m:cur.mode,t:cur.title,ok:ok,n:n});if(S.hist.length>150)S.hist.shift();
   S.xp+=gain;touchStreak();save();
   cur.ok=ok;cur.gain=gain;view={name:"end"};render();
 }
@@ -358,8 +591,8 @@ function end(){
   else if(r>=.5)msg="La base est là. Relis la fiche et relance une série.";
   else msg="Série difficile, et c'est le moment d'en avoir. Fiche, puis nouvelle tentative.";
   var wrong=cur.ids.map(function(id,i){return{q:Q[id],a:cur.ans[i]};}).filter(function(x){return x.a!==0;});
-  app.innerHTML=head(1)+'<section class="panel"><div class="meta"><span>'+esc(cur.title)+'</span><span class="num">+'+cur.gain+' pts</span></div><div class="score num">'+ok+'/'+n+'</div><p>'+esc(msg)+'</p><p class="small muted num">Série en cours : '+S.streak+' jour'+(S.streak>1?"s":"")+' · Total : '+S.xp+' pts</p></section>'+
-  '<div class="rows"><button class="btn go" data-go="scores"><span><span class="t">Envoyer mon score à '+esc(o)+'</span></span><span class="arrow">→</span></button><button class="btn" data-go="home"><span class="t">Retour au tableau</span><span class="arrow">→</span></button></div>'+
+  app.innerHTML=head(1)+'<section class="panel"><div class="meta"><span>'+esc(cur.title)+'</span><span class="num">+'+cur.gain+' pts</span></div><div class="score num">'+ok+'/'+n+'</div><p>'+esc(msg)+'</p>'+prevLine()+'<p class="small muted num">Série en cours : '+S.streak+' jour'+(S.streak>1?"s":"")+' · Total : '+S.xp+' pts</p></section>'+
+  '<div class="rows"><button class="btn go" data-go="scores"><span><span class="t">Envoyer mon score à '+esc(o)+'</span></span><span class="arrow">→</span></button><button class="btn" data-go="parcours"><span class="t">Voir mon parcours</span><span class="arrow">→</span></button><button class="btn" data-go="home"><span class="t">Retour au tableau</span><span class="arrow">→</span></button></div>'+
   (wrong.length?'<section class="panel"><h2>À revoir</h2>'+wrong.map(function(x){return'<div><p><b>'+esc(x.q[1])+'</b></p><p>'+esc(x.q[2][0])+'</p><p class="small muted">'+esc(x.q[3])+'</p></div>';}).join("")+'</section>':"");
 }
 /* ---------- échange de scores ---------- */
@@ -393,6 +626,7 @@ function duelEnd(){
 }
 /* ---------- événements ---------- */
 app.addEventListener("click",function(e){
+  var tp=e.target.closest("[data-tip]");if(tp){var te=document.getElementById("tip");if(te)te.textContent=tp.dataset.tip;return;}
   var b=e.target.closest("button");if(!b)return;var d=b.dataset;
   if(d.me){S.me=d.me;if(S.rival&&S.rival.who===S.me)S.rival=null;save();view={name:"home"};render();}
   else if(d.go){view={name:d.go};render();}
@@ -406,6 +640,9 @@ app.addEventListener("click",function(e){
   else if(d.opt!=null)answer(+d.opt);
   else if(d.duel)duelTap(d.duel,+d.o);
   else if(d.act==="next")next();
+  else if(d.act==="memo")startMemo();
+  else if(d.act==="flip"){cur.show=true;memo();}
+  else if(d.memo!=null){S.memo[cur.ids[cur.i]]=+d.memo;if(+d.memo)cur.ok++;save();cur.i++;cur.show=false;memo();}
   else if(d.act==="dnext")duelNext();
   else if(d.act==="daily")start(shuffle(allIds(),rng("ssiap2-"+dayStr())).slice(0,10),"daily","Défi du jour");
   else if(d.act==="exam")start(shuffle(allIds()).slice(0,40),"exam","Examen blanc");
@@ -418,8 +655,9 @@ app.addEventListener("click",function(e){
   else if(d.act==="paste"){var r=parseCode(document.getElementById("hiscode").value);
     if(!r)scores("Ce code n'est pas reconnu. Il commence par S2- et se copie en entier.");
     else if(r.who===S.me)scores("C'est ton propre code. Il faut celui de "+P[other()].n+".");
-    else{S.rival=r;save();view={name:"home"};render();}}
+    else{S.rival=r;S.rh[r.at]={xp:r.xp,pc:r.pc};save();view={name:"home"};render();}}
 });
+app.addEventListener("mouseover",function(e){var tp=e.target.closest&&e.target.closest("[data-tip]");if(tp){var te=document.getElementById("tip");if(te)te.textContent=tp.dataset.tip;}});
 function boot(data){load(data);render();}
 try{if(window.claude&&window.claude.hot){window.claude.hot.snapshot(function(){return S;});}}catch(e){}
 if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(boot);else boot((window.claude&&window.claude.hot&&window.claude.hot.data)||{});
