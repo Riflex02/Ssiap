@@ -1685,6 +1685,11 @@ function guide(){
   GUIDE.map(function(g){return'<h2 class="sec">'+esc(g[0])+'</h2><div class="rows">'+g[1].map(function(i){var d=S.read[i];return'<button class="btn" data-cours="'+i+'"><span class="theme"><span class="led '+(d!=null?"g":"")+'"></span><span><span class="t">'+esc(cname(i))+'</span><br><span class="d">'+esc(C[i].intro)+'</span></span></span><span class="arrow">→</span></button>';}).join("")+'</div>';}).join("")+
   (src>=0?'<div class="rows"><button class="btn" data-fiche="'+src+'"><span class="t">Sources des cours</span><span class="arrow">→</span></button></div>':"");
 }
+function dailyIds(day){
+  var perm=shuffle(allIds(),rng("ssiap2-defis-du-jour")),n=perm.length,k=Math.max(0,dnum(day||dayStr())-dnum("2026-11-14")),out=[];
+  for(var i=0;i<10;i++)out.push(perm[(k*10+i)%n]);
+  return out;
+}
 /* ---------- événements ---------- */
 app.addEventListener("click",function(e){
   var tp=e.target.closest("[data-tip]");if(tp){var te=document.getElementById("tip");if(te)te.textContent=tp.dataset.tip;return;}
@@ -1721,7 +1726,7 @@ app.addEventListener("click",function(e){
   else if(d.act==="flip"){cur.show=true;memo();}
   else if(d.memo!=null){S.memo[cur.ids[cur.i]]=+d.memo;if(+d.memo)cur.ok++;save();cur.i++;cur.show=false;if(cur.i>=cur.ids.length){S.mday=dayStr();save();}memo();}
   else if(d.act==="dnext")duelNext();
-  else if(d.act==="daily")start(shuffle(allIds(),rng("ssiap2-"+dayStr())).slice(0,10),"daily","Défi du jour");
+  else if(d.act==="daily")start(dailyIds(),"daily","Défi du jour");
   else if(d.act==="exam")start(shuffle(allIds()).slice(0,40),"exam","Examen blanc");
   else if(d.act==="duel")startDuel();
   else if(d.act==="quit"){cur=null;view={name:"home"};render();}
